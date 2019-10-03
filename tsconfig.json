@@ -14,7 +14,9 @@
       "Configs/*": ["src/configs/*"],
       "Database/*": ["src/app/database/*"],
       "Helpers/*": ["src/app/helpers/*"],
-      "Providers/*": ["src/app/providers/*"]
+      "Providers/*": ["src/app/providers/*"],
+      "Http/*": ["src/app/http/*"],
+      "Routes/*": ["src/routes/*"]
     },
     "types": ["node"],
     "allowSyntheticDefaultImports": true
