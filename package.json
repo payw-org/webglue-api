@@ -21,6 +21,7 @@
   "homepage": "https://github.com/paywteam/webglue-api#readme",
   "dependencies": {
     "bottleneck": "^2.19.5",
+    "mongoose": "^5.7.3",
     "winston": "^3.2.1"
   },
   "devDependencies": {
@@ -29,6 +30,7 @@
     "@babel/preset-env": "^7.6.2",
     "@types/app-root-path": "^1.2.4",
     "@types/dotenv": "^6.1.1",
+    "@types/mongoose": "^5.5.18",
     "@typescript-eslint/eslint-plugin": "^2.3.2",
     "@typescript-eslint/parser": "^2.3.2",
     "app-root-path": "^2.2.1",

@@ -15,13 +15,13 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
-      // Configs: __dirname + '/src/configs/',
+      Configs: __dirname + '/src/configs/',
       // Database: __dirname + '/src/database/',
       // Resources: __dirname + '/src/resources/',
       // Routes: __dirname + '/src/routes/',
       //
-      // DB: __dirname + '/src/app/db/',
-      // Providers: __dirname + '/src/app/providers/',
+      Database: __dirname + '/src/app/database/',
+      Providers: __dirname + '/src/app/providers/',
       Helpers: __dirname + '/src/app/helpers'
       // Http: __dirname + '/src/app/http'
     }

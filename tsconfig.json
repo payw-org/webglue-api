@@ -11,7 +11,10 @@
     "resolveJsonModule": true,
     "baseUrl": "./",
     "paths": {
-      "Helpers/*": ["src/app/helpers/*"]
+      "Configs/*": ["src/configs/*"],
+      "Database/*": ["src/app/database/*"],
+      "Helpers/*": ["src/app/helpers/*"],
+      "Providers/*": ["src/app/providers/*"]
     },
     "types": ["node"],
     "allowSyntheticDefaultImports": true
