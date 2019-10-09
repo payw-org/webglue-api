@@ -1,4 +1,4 @@
-const config = {
+const databaseConfig = {
   uri:
     'mongodb://' +
     process.env.DB_USERNAME +
@@ -12,4 +12,4 @@ const config = {
     process.env.DB_DATABASE
 }
 
-export default config
+export default databaseConfig
