@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "es2015",
+    "lib": ["dom", "es5", "es2015"],
+    "allowJs": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "baseUrl": "./",
+    "paths": {
+      "Configs/*": ["src/configs/*"],
+      "Database/*": ["src/app/database/*"],
+      "Helpers/*": ["src/app/helpers/*"],
+      "Providers/*": ["src/app/providers/*"],
+      "Http/*": ["src/app/http/*"],
+      "Routes/*": ["src/routes/*"]
+    },
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true
+  },
+  "exclude": ["node_modules", "vendor"]
+}
