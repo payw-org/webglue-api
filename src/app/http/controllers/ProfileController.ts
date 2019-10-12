@@ -1,6 +1,8 @@
 import { Response, SimpleHandler } from 'Http/RequestHandler'
-import { UserDoc } from '../../../migrate/schemas/user'
+import { UserDoc } from 'Migrate/schemas/user'
 import { checkSchema, ValidationChain } from 'express-validator'
+import User from 'Migrate/models/user'
+import LogHelper from 'Helpers/LogHelper'
 
 interface IndexResponseBody {
   email: string
@@ -36,6 +38,7 @@ export default class ProfileController {
         optional: true,
         in: 'body',
         isString: true,
+        isLength: { options: { min: 2, max: 20 } },
         trim: true,
         escape: true,
         errorMessage: '`nickname` must be a string.'
@@ -51,6 +54,7 @@ export default class ProfileController {
         optional: true,
         in: 'body',
         isString: true,
+        isLength: { options: { min: 2, max: 20 } },
         trim: true,
         escape: true,
         errorMessage: '`name` must be a string.'
@@ -66,22 +70,31 @@ export default class ProfileController {
       const user = req.user as UserDoc
 
       // update nickname
-      if (req.body.nickname) {
+      if (req.body.nickname && req.body.nickname !== user.nickname) {
+        // check if nickname is duplicate
+        if (await User.count({ nickname: req.body.nickname })) {
+          return res.status(409).json({
+            err: {
+              param: 'nickname',
+              msg: 'nickname is duplicate.'
+            }
+          })
+        }
+
         user.nickname = req.body.nickname
-        await user.save()
       }
 
       // update image
-      if (req.body.image) {
+      if (req.body.image && req.body.image !== user.image) {
         user.image = req.body.image
-        await user.save()
       }
 
       // update name
-      if (req.body.name) {
+      if (req.body.name && req.body.name !== user.name) {
         user.name = req.body.name
-        await user.save()
       }
+
+      await user.save()
 
       return res.status(204).json({})
     }
