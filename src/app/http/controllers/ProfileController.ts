@@ -2,7 +2,6 @@ import { Response, SimpleHandler } from 'Http/RequestHandler'
 import { UserDoc } from 'Migrate/schemas/user'
 import { checkSchema, ValidationChain } from 'express-validator'
 import User from 'Migrate/models/user'
-import LogHelper from 'Helpers/LogHelper'
 
 interface IndexResponseBody {
   email: string
@@ -96,7 +95,7 @@ export default class ProfileController {
 
       await user.save()
 
-      return res.status(204).json({})
+      return res.status(204).json()
     }
   }
 }
