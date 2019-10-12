@@ -2,10 +2,10 @@ import { Response, SimpleHandler } from 'Http/RequestHandler'
 import { UserDoc } from '../../../migrate/schemas/user'
 
 interface IndexResponseBody {
+  email: string
   nickname: string
   image: string
   name: string
-  new: boolean
 }
 
 export default class MeController {
@@ -15,21 +15,11 @@ export default class MeController {
   public static index(): SimpleHandler {
     return (req, res): Response => {
       const user = req.user as UserDoc
-
-      let nickname, isNew
-      if (!user.nickname) {
-        isNew = true
-        nickname = user.email.split('@')[0] // set default nickname
-      } else {
-        isNew = false
-        nickname = user.nickname
-      }
-
       const responseBody: IndexResponseBody = {
-        nickname: nickname,
+        email: user.email,
+        nickname: user.nickname,
         image: user.image,
-        name: user.name,
-        new: isNew
+        name: user.name
       }
 
       return res.status(200).json(responseBody)

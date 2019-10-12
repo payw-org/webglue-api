@@ -1,5 +1,8 @@
 import express from 'express'
 import passport from 'passport'
+import { UserDoc } from '../migrate/schemas/user'
+import User from '../migrate/models/user'
+import url from 'url'
 
 const oauth2Router = express.Router({ mergeParams: true })
 
@@ -18,8 +21,23 @@ oauth2Router.get(
 oauth2Router.get(
   '/google/callback',
   passport.authenticate('google'),
-  (req, res) => {
-    res.redirect(process.env.CLIENT_HOME_URL)
+  async (req, res) => {
+    const user = req.user as UserDoc
+
+    if (user.isNew) {
+      await user.save()
+
+      res.redirect(
+        url.format({
+          pathname: process.env.CLIENT_HOME_URL,
+          query: {
+            isnew: true
+          }
+        })
+      )
+    } else {
+      res.redirect(process.env.CLIENT_HOME_URL)
+    }
   }
 )
 
