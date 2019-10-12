@@ -1,6 +1,7 @@
 import express from 'express'
 import oauth2Router from 'Routes/oauth2'
 import meRouter from 'Routes/me'
+import { UserDoc } from 'Migrate/schemas/user'
 
 const mainRouter = express.Router()
 
@@ -16,11 +17,11 @@ mainRouter.use('/me', meRouter)
 mainRouter.get('/', (req, res) => {
   if (req.isAuthenticated()) {
     res.json({
-      user: req.user
+      text: 'hello ' + (req.user as UserDoc).nickname
     })
   } else {
     res.json({
-      test: 'dfdf'
+      test: 'u r not user'
     })
   }
 })
