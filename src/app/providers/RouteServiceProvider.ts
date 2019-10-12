@@ -6,7 +6,6 @@ import session from 'Configs/session'
 import passport from 'Configs/passport'
 import HandleClientError from 'Http/middleware/HandleClientError'
 import HandleSyntaxError from 'Http/middleware/HandleSyntaxError'
-import RequestValidationError from 'Http/middleware/RequestValidationError'
 import HandleServerError from 'Http/middleware/HandleServerError'
 import mainRouter from 'Routes/api'
 
@@ -30,7 +29,6 @@ export default class RouteServiceProvider {
   private static errorHandlerMiddleware = [
     HandleClientError.handler(),
     HandleSyntaxError.handler(),
-    RequestValidationError.handler(),
     HandleServerError.handler()
   ]
 
