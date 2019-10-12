@@ -29,14 +29,14 @@ oauth2Router.get(
 
       res.redirect(
         url.format({
-          pathname: process.env.CLIENT_HOME_URL,
+          pathname: process.env.DOMAIN,
           query: {
             isnew: true
           }
         })
       )
     } else {
-      res.redirect(process.env.CLIENT_HOME_URL)
+      res.redirect(process.env.DOMAIN)
     }
   }
 )
