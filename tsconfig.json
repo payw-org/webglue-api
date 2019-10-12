@@ -16,7 +16,8 @@
       "Helpers/*": ["src/app/helpers/*"],
       "Providers/*": ["src/app/providers/*"],
       "Http/*": ["src/app/http/*"],
-      "Routes/*": ["src/routes/*"]
+      "Routes/*": ["src/routes/*"],
+      "Migrate/*": ["src/migrate/*"]
     },
     "types": ["node"],
     "allowSyntheticDefaultImports": true

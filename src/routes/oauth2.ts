@@ -1,7 +1,7 @@
 import express from 'express'
 import passport from 'passport'
-import { UserDoc } from '../migrate/schemas/user'
-import User from '../migrate/models/user'
+import { UserDoc } from 'Migrate/schemas/user'
+import User from 'Migrate/models/user'
 import url from 'url'
 
 const oauth2Router = express.Router({ mergeParams: true })

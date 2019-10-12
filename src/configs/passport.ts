@@ -1,8 +1,8 @@
 import passport from 'passport'
 import nanoid from 'nanoid'
 import { Strategy } from 'passport-google-oauth20'
-import User from '../migrate/models/user'
-import { UserDoc } from '../migrate/schemas/user'
+import User from 'Migrate/models/user'
+import { UserDoc } from 'Migrate/schemas/user'
 
 /**
  * OAuth strategy
