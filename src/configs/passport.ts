@@ -55,7 +55,7 @@ passport.serializeUser((user: UserDoc, done) => {
 passport.deserializeUser((_id, done) => {
   User.findById(_id, (err, user) => {
     done(err, user)
-  }).lean()
+  })
 })
 
 export default passport
