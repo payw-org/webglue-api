@@ -15,7 +15,9 @@ export default class RouteServiceProvider {
    */
   private static basicMiddleware = [
     helmet(),
-    cors(),
+    cors({
+      origin: process.env.DOMAIN
+    }),
     bodyParser.json(),
     bodyParser.urlencoded({ extended: true }),
     session,
