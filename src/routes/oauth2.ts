@@ -1,44 +1,32 @@
 import express from 'express'
 import passport from 'passport'
-import { UserDoc } from 'Migrate/schemas/user'
-import User from 'Migrate/models/user'
-import url from 'url'
+import Handle405Error from 'Http/middleware/Handle405Error'
+import OAuth2Controller from 'Http/controllers/OAuth2Controller'
 
 const oauth2Router = express.Router({ mergeParams: true })
 
 /**
  * Controller
  */
-// google login
-oauth2Router.get(
-  '/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email']
-  })
-)
 
-// google login callback
-oauth2Router.get(
-  '/google/callback',
-  passport.authenticate('google'),
-  async (req, res) => {
-    const user = req.user as UserDoc
+/**
+ * GET: google login
+ */
+oauth2Router
+  .route('/google')
+  .get(
+    passport.authenticate('google', {
+      scope: ['profile', 'email']
+    })
+  )
+  .all(Handle405Error.handler())
 
-    if (user.isNew) {
-      await user.save()
-
-      res.redirect(
-        url.format({
-          pathname: process.env.DOMAIN,
-          query: {
-            isnew: true
-          }
-        })
-      )
-    } else {
-      res.redirect(process.env.DOMAIN)
-    }
-  }
-)
+/**
+ * GET: google login callback
+ */
+oauth2Router
+  .route('/google/callback')
+  .get(passport.authenticate('google'), OAuth2Controller.googleCallback())
+  .all(Handle405Error.handler())
 
 export default oauth2Router
