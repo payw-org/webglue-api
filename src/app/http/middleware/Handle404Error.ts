@@ -1,6 +1,6 @@
 import { Response, SimpleHandler } from 'Http/RequestHandler'
 
-export default class HandleClientError {
+export default class Handle404Error {
   /**
    * Handle 404 http error.
    */

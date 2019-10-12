@@ -4,9 +4,9 @@ import bodyParser from 'body-parser'
 import express, { Express } from 'express'
 import session from 'Configs/session'
 import passport from 'Configs/passport'
-import HandleClientError from 'Http/middleware/HandleClientError'
+import Handle404Error from 'Http/middleware/Handle404Error'
 import HandleSyntaxError from 'Http/middleware/HandleSyntaxError'
-import HandleServerError from 'Http/middleware/HandleServerError'
+import Handle500Error from 'Http/middleware/Handle500Error'
 import mainRouter from 'Routes/api'
 
 export default class RouteServiceProvider {
@@ -29,9 +29,9 @@ export default class RouteServiceProvider {
    * Error handler middleware list which handle http error.
    */
   private static errorHandlerMiddleware = [
-    HandleClientError.handler(),
+    Handle404Error.handler(),
     HandleSyntaxError.handler(),
-    HandleServerError.handler()
+    Handle500Error.handler()
   ]
 
   /**
