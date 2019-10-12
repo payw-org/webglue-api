@@ -26,16 +26,17 @@ passport.use(
         { googleId: googleId },
         { loggedInAt: new Date() },
         (err, user) => {
+          // if new user, create user document and not save to the database
           if (!user) {
-            User.create({
+            const newUser = new User({
               googleId: googleId,
               email: email,
               nickname: nickname,
               image: image,
               name: name
-            }).then(newUser => {
-              done(err, newUser)
             })
+
+            done(err, newUser)
           } else {
             done(err, user)
           }
