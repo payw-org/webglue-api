@@ -2,6 +2,7 @@ import express from 'express'
 import oauth2Router from 'Routes/oauth2'
 import meRouter from 'Routes/me'
 import { UserDoc } from 'Migrate/schemas/user'
+import mirroringRouter from 'Routes/mirroring'
 
 const mainRouter = express.Router()
 
@@ -10,6 +11,7 @@ const mainRouter = express.Router()
  */
 mainRouter.use('/oauth2', oauth2Router)
 mainRouter.use('/me', meRouter)
+mainRouter.use('/mirroring', mirroringRouter)
 
 /**
  * Controller
