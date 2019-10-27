@@ -1,10 +1,15 @@
 import request from 'request-promise-native'
-import fs from 'fs'
+import fs from 'fs-extra'
 import appRoot from 'app-root-path'
+import { JSDOM } from 'jsdom'
 import { SimpleHandler, Response } from 'Http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 
 export default class MirroringController {
+  private static url: URL
+
+  private static html: JSDOM
+
   public static validateGetHTML(): ValidationChain[] {
     return checkSchema({
       url: {
@@ -37,12 +42,15 @@ export default class MirroringController {
 
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
-      const url = new URL(req.query.url)
+      this.url = new URL(req.query.url)
 
       try {
-        await this.downloadHTML(url)
+        await this.downloadHTML()
+        const result = this.parseHTML()
 
-        return res.status(200).json()
+        return res.status(200).json({
+          result: result
+        })
       } catch (err) {
         return res.status(406).json({
           err: {
@@ -53,16 +61,44 @@ export default class MirroringController {
     }
   }
 
-  private static async downloadHTML(url: URL): Promise<void> {
-    const html = await request(url.href)
+  private static async downloadHTML(): Promise<void> {
+    this.html = new JSDOM(await request(this.url.href))
+    const dir = appRoot.path + '/mirrors/' + this.url.hostname
 
-    const dir = appRoot.path + '/mirrors/' + url.hostname
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir)
     }
 
     const wstream = fs.createWriteStream(dir + '/index.html')
-    wstream.write(html)
+    wstream.write(this.html.serialize())
     wstream.end()
+  }
+
+  private static parseHTML(): string[] {
+    const linkElements = this.html.window.document.querySelectorAll('link')
+    const srcTagsElements = [
+      this.html.window.document.querySelectorAll('img'),
+      this.html.window.document.querySelectorAll('script'),
+      this.html.window.document.querySelectorAll('video')
+    ]
+    const assetLinks = []
+
+    // select all stylesheet href attributes
+    for (let i = 0; i < linkElements.length; i++) {
+      if (linkElements[i].rel === 'stylesheet') {
+        assetLinks.push(linkElements[i].href)
+      }
+    }
+
+    // select all src attributes
+    for (const tagElments of srcTagsElements) {
+      for (let i = 0; i < tagElments.length; i++) {
+        if (tagElments[i].src) {
+          assetLinks.push(tagElments[i].src)
+        }
+      }
+    }
+
+    return assetLinks
   }
 }
