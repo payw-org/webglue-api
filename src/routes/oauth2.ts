@@ -11,6 +11,7 @@ const oauth2Router = express.Router({ mergeParams: true })
 
 /**
  * GET: google login
+ * DELETE: google logout
  */
 oauth2Router
   .route('/google')
@@ -19,6 +20,7 @@ oauth2Router
       scope: ['profile', 'email']
     })
   )
+  .delete(OAuth2Controller.logout())
   .all(Handle405Error.handler())
 
 /**
