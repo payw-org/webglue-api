@@ -55,6 +55,7 @@ export default class MirroringController {
       try {
         await this.downloadHTML()
         this.getAssets()
+        this.changeToAbsolutePathOfAssets()
 
         return res.status(200).send(this.html.serialize())
       } catch (err) {
@@ -121,5 +122,41 @@ export default class MirroringController {
       }
     }
   }
+
+  private static changeToAbsolutePathOfAssets(): void {
+    // convert all http to https
+    const httpRegex = /(http:\/\/)/g
+    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
+      httpRegex,
+      'https://'
+    )
+
+    // convert all relative path to absolute path
+    const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
+    for (const hrefElement of this.assetElements.hrefElements) {
+      if (!hostnameRegex.test(hrefElement.href)) {
+        hrefElement.setAttribute(
+          'href',
+          'https://' + this.url.hostname + hrefElement.href
+        )
+      }
+    }
+
+    for (const srcElement of this.assetElements.srcElements) {
+      if (!hostnameRegex.test(srcElement.src)) {
+        srcElement.setAttribute(
+          'src',
+          'https://' + this.url.hostname + srcElement.src
+        )
+      }
+    }
+
+    const stylePathRegex = /(url\(\/)/gm
+    for (const styleElement of this.assetElements.styleElements) {
+      styleElement.innerHTML = styleElement.innerHTML.replace(
+        stylePathRegex,
+        'url(https://' + this.url.hostname + '/'
+      )
+    }
   }
 }
