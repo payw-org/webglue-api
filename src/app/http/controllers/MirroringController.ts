@@ -53,9 +53,10 @@ export default class MirroringController {
       this.url = new URL(req.body.url || req.query.url)
 
       try {
-        await this.downloadHTML()
+        await this.requestHTML()
         this.getAssets()
         this.changeToAbsolutePathOfAssets()
+        this.createMirroredHTML()
 
         return res.status(200).send(this.html.serialize())
       } catch (err) {
@@ -68,8 +69,11 @@ export default class MirroringController {
     }
   }
 
-  private static async downloadHTML(): Promise<void> {
+  private static async requestHTML(): Promise<void> {
     this.html = new JSDOM(await request(this.url.href))
+  }
+
+  private static createMirroredHTML(): void {
     const dir = appRoot.path + '/mirrors/' + this.url.hostname
 
     if (!fs.existsSync(dir)) {
