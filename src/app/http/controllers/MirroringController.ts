@@ -5,10 +5,18 @@ import { JSDOM } from 'jsdom'
 import { SimpleHandler, Response } from 'Http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 
+interface AssetElementList {
+  hrefElements: HTMLLinkElement[]
+  srcElements: Array<HTMLImageElement | HTMLScriptElement | HTMLVideoElement>
+  styleElements: HTMLStyleElement[]
+}
+
 export default class MirroringController {
   private static url: URL
 
   private static html: JSDOM
+
+  private static assetElements = {} as AssetElementList
 
   public static validateGetHTML(): ValidationChain[] {
     return checkSchema({
@@ -46,11 +54,9 @@ export default class MirroringController {
 
       try {
         await this.downloadHTML()
-        const result = this.parseHTML()
+        this.getAssets()
 
-        return res.status(200).json({
-          result: result
-        })
+        return res.status(200).send(this.html.serialize())
       } catch (err) {
         return res.status(406).json({
           err: {
@@ -74,31 +80,46 @@ export default class MirroringController {
     wstream.end()
   }
 
-  private static parseHTML(): string[] {
-    const linkElements = this.html.window.document.querySelectorAll('link')
-    const srcTagsElements = [
+  private static getAssets(): void {
+    const hrefElements = this.html.window.document.querySelectorAll('link')
+    const srcElements = [
       this.html.window.document.querySelectorAll('img'),
       this.html.window.document.querySelectorAll('script'),
       this.html.window.document.querySelectorAll('video')
     ]
-    const assetLinks = []
+    const styleElements = this.html.window.document.querySelectorAll('style')
 
-    // select all stylesheet href attributes
-    for (let i = 0; i < linkElements.length; i++) {
-      if (linkElements[i].rel === 'stylesheet') {
-        assetLinks.push(linkElements[i].href)
-      }
-    }
+    this.assetElements.hrefElements = []
+    this.assetElements.srcElements = []
+    this.assetElements.styleElements = []
 
-    // select all src attributes
-    for (const tagElments of srcTagsElements) {
-      for (let i = 0; i < tagElments.length; i++) {
-        if (tagElments[i].src) {
-          assetLinks.push(tagElments[i].src)
+    // get all stylesheet and preload link elements
+    for (let i = 0; i < hrefElements.length; i++) {
+      if (
+        hrefElements[i].rel === 'stylesheet' ||
+        hrefElements[i].rel === 'preload'
+      ) {
+        if (hrefElements[i].href) {
+          this.assetElements.hrefElements.push(hrefElements[i])
         }
       }
     }
 
-    return assetLinks
+    // get all src elements
+    for (const tagElements of srcElements) {
+      for (let i = 0; i < tagElements.length; i++) {
+        if (tagElements[i].src) {
+          this.assetElements.srcElements.push(tagElements[i])
+        }
+      }
+    }
+
+    const styleURLRegex = /(url\()/
+    for (let i = 0; i < styleElements.length; i++) {
+      if (styleURLRegex.test(styleElements[i].textContent)) {
+        this.assetElements.styleElements.push(styleElements[i])
+      }
+    }
+  }
   }
 }
