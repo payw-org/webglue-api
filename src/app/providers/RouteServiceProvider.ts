@@ -14,7 +14,10 @@ export default class RouteServiceProvider {
    * Basic middleware list which is globally applied to router.
    */
   private static basicMiddleware = [
-    helmet(),
+    helmet.frameguard({
+      action: 'allow-from',
+      domain: 'http://eodiro.com'
+    }),
     cors({
       origin: process.env.DOMAIN,
       credentials: true
