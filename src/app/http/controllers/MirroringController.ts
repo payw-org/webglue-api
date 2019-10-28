@@ -14,7 +14,7 @@ export default class MirroringController {
     return checkSchema({
       url: {
         exists: true,
-        in: 'query',
+        in: ['body', 'query'],
         isURL: true,
         trim: true,
         customSanitizer: {
@@ -41,8 +41,8 @@ export default class MirroringController {
   }
 
   public static getHTML(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
-      this.url = new URL(req.query.url)
+    return async (req, res): Promise<Response | void> => {
+      this.url = new URL(req.body.url || req.query.url)
 
       try {
         await this.downloadHTML()
