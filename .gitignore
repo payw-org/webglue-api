@@ -3,5 +3,6 @@
 /node_modules
 /build
 /logs
+/mirrors
 .env
 pm2.config.js

@@ -16,7 +16,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
       Configs: __dirname + '/src/configs/',
-      // Database: __dirname + '/src/database/',
+      Migrate: __dirname + '/src/migrate/',
       // Resources: __dirname + '/src/resources/',
       Routes: __dirname + '/src/routes/',
       Database: __dirname + '/src/app/database/',

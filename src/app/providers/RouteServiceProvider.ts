@@ -4,10 +4,9 @@ import bodyParser from 'body-parser'
 import express, { Express } from 'express'
 import session from 'Configs/session'
 import passport from 'Configs/passport'
-import HandleClientError from 'Http/middleware/HandleClientError'
+import Handle404Error from 'Http/middleware/Handle404Error'
 import HandleSyntaxError from 'Http/middleware/HandleSyntaxError'
-import RequestValidationError from 'Http/middleware/RequestValidationError'
-import HandleServerError from 'Http/middleware/HandleServerError'
+import Handle500Error from 'Http/middleware/Handle500Error'
 import mainRouter from 'Routes/api'
 
 export default class RouteServiceProvider {
@@ -15,8 +14,14 @@ export default class RouteServiceProvider {
    * Basic middleware list which is globally applied to router.
    */
   private static basicMiddleware = [
-    helmet(),
-    cors(),
+    helmet.frameguard({
+      action: 'allow-from',
+      domain: 'https://eodiro.com'
+    }),
+    cors({
+      origin: process.env.DOMAIN,
+      credentials: true
+    }),
     bodyParser.json(),
     bodyParser.urlencoded({ extended: true }),
     session,
@@ -28,10 +33,9 @@ export default class RouteServiceProvider {
    * Error handler middleware list which handle http error.
    */
   private static errorHandlerMiddleware = [
-    HandleClientError.handler(),
+    Handle404Error.handler(),
     HandleSyntaxError.handler(),
-    RequestValidationError.handler(),
-    HandleServerError.handler()
+    Handle500Error.handler()
   ]
 
   /**

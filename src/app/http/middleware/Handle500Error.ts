@@ -1,7 +1,7 @@
 import { Response, ErrorHandler } from 'Http/RequestHandler'
 import LogHelper from 'Helpers/LogHelper'
 
-export default class HandleServerError {
+export default class Handle500Error {
   /**
    * Handle 500 http error.
    * This is last error handler.
