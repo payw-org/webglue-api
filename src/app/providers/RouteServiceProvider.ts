@@ -16,7 +16,7 @@ export default class RouteServiceProvider {
   private static basicMiddleware = [
     helmet.frameguard({
       action: 'allow-from',
-      domain: 'http://eodiro.com'
+      domain: 'https://eodiro.com'
     }),
     cors({
       origin: process.env.DOMAIN,

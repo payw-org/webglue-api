@@ -49,7 +49,7 @@ export default class MirroringController {
   }
 
   public static getHTML(): SimpleHandler {
-    return async (req, res): Promise<Response | void> => {
+    return async (req, res): Promise<Response> => {
       this.url = new URL(req.body.url || req.query.url)
 
       try {
@@ -128,13 +128,6 @@ export default class MirroringController {
   }
 
   private static changeToAbsolutePathOfAssets(): void {
-    // convert all http to https
-    const httpRegex = /(http:\/\/)/g
-    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
-      httpRegex,
-      'https://'
-    )
-
     // convert all relative path to absolute path
     const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
     for (const hrefElement of this.assetElements.hrefElements) {
@@ -162,5 +155,12 @@ export default class MirroringController {
         'url(https://' + this.url.hostname + '/'
       )
     }
+
+    // convert all http to https
+    const httpRegex = /(http:\/\/)/g
+    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
+      httpRegex,
+      'https://'
+    )
   }
 }
