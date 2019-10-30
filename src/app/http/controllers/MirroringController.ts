@@ -50,15 +50,18 @@ export default class MirroringController {
     })
   }
 
+  /**
+   * Get mirrored html
+   */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
       this.url = new URL(req.body.url || req.query.url)
 
       try {
-        this.getAssets()
-        this.changeToAbsolutePathOfAssets()
-        this.createMirroredHTML()
         await this.requestHTML(req)
+        this.fetchAssetElements()
+        this.changeAssetsURL()
+        this.createMirroredHTMLFile()
 
         return res.status(200).send(this.html.serialize())
       } catch (err) {
@@ -106,7 +109,7 @@ export default class MirroringController {
     )
   }
 
-  private static getAssets(): void {
+  private static fetchAssetElements(): void {
     const hrefElements = this.html.window.document.querySelectorAll('link')
     const srcElements = [
       this.html.window.document.querySelectorAll('img'),
@@ -148,7 +151,7 @@ export default class MirroringController {
     }
   }
 
-  private static changeToAbsolutePathOfAssets(): void {
+  private static changeAssetsURL(): void {
     // convert all relative path to absolute path
     const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
     for (const hrefElement of this.assetElements.hrefElements) {
@@ -178,7 +181,7 @@ export default class MirroringController {
     }
   }
 
-  private static createMirroredHTML(): void {
+  private static createMirroredHTMLFile(): void {
     const dir = appRoot.path + '/mirrors/' + this.url.hostname
 
     if (!fs.existsSync(dir)) {
