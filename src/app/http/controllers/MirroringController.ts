@@ -6,6 +6,7 @@ import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from 'Http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
+import LogHelper from 'Helpers/LogHelper'
 
 interface AssetElementList {
   hrefElements: HTMLLinkElement[]
@@ -164,7 +165,10 @@ export default class MirroringController {
     }
 
     for (const srcElement of this.assetElements.srcElements) {
-      if (!hostnameRegex.test(srcElement.src)) {
+      if (
+        !hostnameRegex.test(srcElement.src) &&
+        !srcElement.src.startsWith('data:')
+      ) {
         srcElement.setAttribute(
           'src',
           'https://' + this.url.hostname + srcElement.src
