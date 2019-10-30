@@ -1,8 +1,10 @@
 import request from 'request-promise-native'
 import fs from 'fs-extra'
+import iconv from 'iconv-lite'
+import charset from 'charset'
 import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
-import { SimpleHandler, Response } from 'Http/RequestHandler'
+import { SimpleHandler, Request, Response } from 'Http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 
 interface AssetElementList {
@@ -53,10 +55,10 @@ export default class MirroringController {
       this.url = new URL(req.body.url || req.query.url)
 
       try {
-        await this.requestHTML()
         this.getAssets()
         this.changeToAbsolutePathOfAssets()
         this.createMirroredHTML()
+        await this.requestHTML(req)
 
         return res.status(200).send(this.html.serialize())
       } catch (err) {
@@ -69,8 +71,32 @@ export default class MirroringController {
     }
   }
 
-  private static async requestHTML(): Promise<void> {
-    this.html = new JSDOM(await request(this.url.href, { encoding: 'utf8' }))
+  private static async requestHTML(req: Request): Promise<void> {
+    let originalHTML
+
+    // get html body
+    await request(
+      {
+        url: this.url.href,
+        encoding: null,
+        followOriginalHttpMethod: true,
+        headers: {
+          'User-Agent': req.headers['user-agent'],
+          Accept: req.headers.accept,
+          'Accept-Language': req.headers['accept-language']
+        }
+      },
+      (error, res, body) => {
+        if (!error) {
+          // decode the html according to its charset
+          originalHTML = iconv.decode(body, charset(res.headers, body))
+        } else {
+          throw error
+        }
+      }
+    )
+
+    this.html = new JSDOM(originalHTML) // create dom from html
 
     // convert all http to https because http resource load error
     const httpRegex = /(http:\/\/)/g
