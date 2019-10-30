@@ -70,19 +70,14 @@ export default class MirroringController {
   }
 
   private static async requestHTML(): Promise<void> {
-    this.html = new JSDOM(await request(this.url.href))
-  }
+    this.html = new JSDOM(await request(this.url.href, { encoding: 'utf8' }))
 
-  private static createMirroredHTML(): void {
-    const dir = appRoot.path + '/mirrors/' + this.url.hostname
-
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
-    }
-
-    const wstream = fs.createWriteStream(dir + '/index.html')
-    wstream.write(this.html.serialize())
-    wstream.end()
+    // convert all http to https because http resource load error
+    const httpRegex = /(http:\/\/)/g
+    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
+      httpRegex,
+      'https://'
+    )
   }
 
   private static getAssets(): void {
@@ -155,12 +150,17 @@ export default class MirroringController {
         'url(https://' + this.url.hostname + '/'
       )
     }
+  }
 
-    // convert all http to https
-    const httpRegex = /(http:\/\/)/g
-    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
-      httpRegex,
-      'https://'
-    )
+  private static createMirroredHTML(): void {
+    const dir = appRoot.path + '/mirrors/' + this.url.hostname
+
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir)
+    }
+
+    const wstream = fs.createWriteStream(dir + '/index.html')
+    wstream.write(this.html.serialize())
+    wstream.end()
   }
 }
