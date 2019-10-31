@@ -6,7 +6,6 @@ import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from 'Http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
-import LogHelper from 'Helpers/LogHelper'
 
 interface AssetElementList {
   hrefElements: HTMLLinkElement[]
@@ -92,8 +91,10 @@ export default class MirroringController {
       },
       (error, res, body) => {
         if (!error) {
-          // decode the html according to its charset
-          originalHTML = iconv.decode(body, charset(res.headers, body))
+          // update protocol and hostname to actual things
+          this.url.protocol = res.request.uri.protocol
+          this.url.hostname = res.request.uri.hostname
+          originalHTML = iconv.decode(body, charset(res.headers, body)) // decode the html according to its charset
         } else {
           throw error
         }
