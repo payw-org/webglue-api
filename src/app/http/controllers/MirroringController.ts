@@ -1,8 +1,10 @@
 import request from 'request-promise-native'
 import fs from 'fs-extra'
+import iconv from 'iconv-lite'
+import charset from 'charset'
 import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
-import { SimpleHandler, Response } from 'Http/RequestHandler'
+import { SimpleHandler, Request, Response } from 'Http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 
 interface AssetElementList {
@@ -48,15 +50,18 @@ export default class MirroringController {
     })
   }
 
+  /**
+   * Get mirrored html
+   */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
       this.url = new URL(req.body.url || req.query.url)
 
       try {
-        await this.requestHTML()
-        this.getAssets()
-        this.changeToAbsolutePathOfAssets()
-        this.createMirroredHTML()
+        await this.requestHTML(req)
+        this.fetchAssetElements()
+        this.changeAssetsURL()
+        this.createMirroredHTMLFile()
 
         return res.status(200).send(this.html.serialize())
       } catch (err) {
@@ -69,23 +74,44 @@ export default class MirroringController {
     }
   }
 
-  private static async requestHTML(): Promise<void> {
-    this.html = new JSDOM(await request(this.url.href))
+  private static async requestHTML(req: Request): Promise<void> {
+    let originalHTML
+
+    // get html body
+    await request(
+      {
+        url: this.url.href,
+        encoding: null,
+        followOriginalHttpMethod: true,
+        headers: {
+          'User-Agent': req.headers['user-agent'],
+          Accept: req.headers.accept,
+          'Accept-Language': req.headers['accept-language']
+        }
+      },
+      (error, res, body) => {
+        if (!error) {
+          // update protocol and hostname to actual things
+          this.url.protocol = res.request.uri.protocol
+          this.url.hostname = res.request.uri.hostname
+          originalHTML = iconv.decode(body, charset(res.headers, body)) // decode the html according to its charset
+        } else {
+          throw error
+        }
+      }
+    )
+
+    this.html = new JSDOM(originalHTML) // create dom from html
+
+    // convert all http to https because http resource load error
+    const httpRegex = /(http:\/\/)/g
+    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
+      httpRegex,
+      'https://'
+    )
   }
 
-  private static createMirroredHTML(): void {
-    const dir = appRoot.path + '/mirrors/' + this.url.hostname
-
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
-    }
-
-    const wstream = fs.createWriteStream(dir + '/index.html')
-    wstream.write(this.html.serialize())
-    wstream.end()
-  }
-
-  private static getAssets(): void {
+  private static fetchAssetElements(): void {
     const hrefElements = this.html.window.document.querySelectorAll('link')
     const srcElements = [
       this.html.window.document.querySelectorAll('img'),
@@ -127,7 +153,7 @@ export default class MirroringController {
     }
   }
 
-  private static changeToAbsolutePathOfAssets(): void {
+  private static changeAssetsURL(): void {
     // convert all relative path to absolute path
     const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
     for (const hrefElement of this.assetElements.hrefElements) {
@@ -140,7 +166,10 @@ export default class MirroringController {
     }
 
     for (const srcElement of this.assetElements.srcElements) {
-      if (!hostnameRegex.test(srcElement.src)) {
+      if (
+        !hostnameRegex.test(srcElement.src) &&
+        !srcElement.src.startsWith('data:')
+      ) {
         srcElement.setAttribute(
           'src',
           'https://' + this.url.hostname + srcElement.src
@@ -155,12 +184,17 @@ export default class MirroringController {
         'url(https://' + this.url.hostname + '/'
       )
     }
+  }
 
-    // convert all http to https
-    const httpRegex = /(http:\/\/)/g
-    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
-      httpRegex,
-      'https://'
-    )
+  private static createMirroredHTMLFile(): void {
+    const dir = appRoot.path + '/mirrors/' + this.url.hostname
+
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir)
+    }
+
+    const wstream = fs.createWriteStream(dir + '/index.html')
+    wstream.write(this.html.serialize())
+    wstream.end()
   }
 }
