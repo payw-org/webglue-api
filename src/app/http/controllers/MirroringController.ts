@@ -103,7 +103,7 @@ export default class MirroringController {
     this.html = new JSDOM(originalHTML) // create dom from html
 
     // convert all http to https because http resource load error
-    const httpRegex = /(http:\/\/)/g
+    const httpRegex = /(http:\/\/)/gm
     this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
       httpRegex,
       'https://'
@@ -162,28 +162,13 @@ export default class MirroringController {
   }
 
   private static changeAssetsURL(): void {
-    const urlPathRegex = /^\/(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
-    // const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
-
     // convert all relative path to absolute path
     for (const hrefElement of this.assetElements.hrefElements) {
-      hrefElement.setAttribute(
-        'href',
-        hrefElement.href.replace(
-          urlPathRegex,
-          'https://' + this.url.hostname + '$&'
-        )
-      )
+      hrefElement.setAttribute('href', this.getAbsolutePath(hrefElement.href))
     }
 
     for (const srcElement of this.assetElements.srcElements) {
-      srcElement.setAttribute(
-        'src',
-        srcElement.src.replace(
-          urlPathRegex,
-          'https://' + this.url.hostname + '$&'
-        )
-      )
+      srcElement.setAttribute('src', this.getAbsolutePath(srcElement.src))
     }
 
     for (const srcsetElement of this.assetElements.srcsetElements) {
@@ -193,10 +178,7 @@ export default class MirroringController {
           src = src.trimLeft()
 
           const srcTokens = src.split(' ')
-          srcTokens[0] = srcTokens[0].replace(
-            urlPathRegex,
-            'https://' + this.url.hostname + '$&'
-          )
+          srcTokens[0] = this.getAbsolutePath(srcTokens[0])
 
           src = srcTokens.join(' ')
 
@@ -213,6 +195,34 @@ export default class MirroringController {
         'url(https://' + this.url.hostname + '/'
       )
     }
+  }
+
+  private static getAbsolutePath(path: string): string {
+    /**
+     * root path: /foo/bar
+     * current path: foo/bar
+     * parent path: ../foo/bar
+     */
+    const rootPathRegex = /^\/(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
+    const currentPathRegex = /^(?!data:)(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
+    const parentPathRegex = /^\.\.\/(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
+    // const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
+
+    if (rootPathRegex.test(path)) {
+      path = 'https://' + this.url.host + path
+    } else if (currentPathRegex.test(path)) {
+      const currentPaths = this.url.pathname.split('/').slice(0, -1)
+      const assetPaths = path.split('/')
+      path =
+        'https://' + this.url.host + currentPaths.concat(assetPaths).join('/')
+    } else if (parentPathRegex.test(path)) {
+      const parentPaths = this.url.pathname.split('/').slice(0, -2)
+      const assetPaths = path.split('/').slice(1)
+      path =
+        'https://' + this.url.host + parentPaths.concat(assetPaths).join('/')
+    }
+
+    return path
   }
 
   private static createMirroredHTMLFile(): void {
