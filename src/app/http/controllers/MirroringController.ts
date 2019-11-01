@@ -164,28 +164,28 @@ export default class MirroringController {
   }
 
   private static changeAssetsURL(): void {
-    const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
+    const urlPathRegex = /^\/(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
+    // const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
 
     // convert all relative path to absolute path
     for (const hrefElement of this.assetElements.hrefElements) {
-      if (!hostnameRegex.test(hrefElement.href)) {
-        hrefElement.setAttribute(
-          'href',
-          'https://' + this.url.hostname + hrefElement.href
+      hrefElement.setAttribute(
+        'href',
+        hrefElement.href.replace(
+          urlPathRegex,
+          'https://' + this.url.hostname + '$&'
         )
-      }
+      )
     }
 
     for (const srcElement of this.assetElements.srcElements) {
-      if (
-        !hostnameRegex.test(srcElement.src) &&
-        !srcElement.src.startsWith('data:')
-      ) {
-        srcElement.setAttribute(
-          'src',
-          'https://' + this.url.hostname + srcElement.src
+      srcElement.setAttribute(
+        'src',
+        srcElement.src.replace(
+          urlPathRegex,
+          'https://' + this.url.hostname + '$&'
         )
-      }
+      )
     }
 
     for (const srcsetElement of this.assetElements.srcsetElements) {
@@ -194,9 +194,13 @@ export default class MirroringController {
         .map(src => {
           src = src.trimLeft()
 
-          if (!hostnameRegex.test(src) && !src.startsWith('data:')) {
-            src = 'https://' + this.url.hostname + src
-          }
+          const srcTokens = src.split(' ')
+          srcTokens[0] = srcTokens[0].replace(
+            urlPathRegex,
+            'https://' + this.url.hostname + '$&'
+          )
+
+          src = srcTokens.join(' ')
 
           return src
         })
