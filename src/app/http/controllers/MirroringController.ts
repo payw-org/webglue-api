@@ -10,6 +10,7 @@ import { checkSchema, ValidationChain } from 'express-validator'
 interface AssetElementList {
   hrefElements: HTMLLinkElement[]
   srcElements: Array<HTMLImageElement | HTMLScriptElement | HTMLVideoElement>
+  srcsetElements: HTMLImageElement[]
   styleElements: HTMLStyleElement[]
 }
 
@@ -118,14 +119,17 @@ export default class MirroringController {
       this.html.window.document.querySelectorAll('script'),
       this.html.window.document.querySelectorAll('video')
     ]
+    const srcsetElements = this.html.window.document.querySelectorAll('img')
     const styleElements = this.html.window.document.querySelectorAll('style')
 
     this.assetElements.hrefElements = []
     this.assetElements.srcElements = []
+    this.assetElements.srcsetElements = []
     this.assetElements.styleElements = []
 
+    let i
     // get all stylesheet and preload link elements
-    for (let i = 0; i < hrefElements.length; i++) {
+    for (i = 0; i < hrefElements.length; i++) {
       if (
         hrefElements[i].rel === 'stylesheet' ||
         hrefElements[i].rel === 'preload'
@@ -138,15 +142,21 @@ export default class MirroringController {
 
     // get all src elements
     for (const tagElements of srcElements) {
-      for (let i = 0; i < tagElements.length; i++) {
+      for (i = 0; i < tagElements.length; i++) {
         if (tagElements[i].src) {
           this.assetElements.srcElements.push(tagElements[i])
         }
       }
     }
 
+    for (i = 0; i < srcsetElements.length; i++) {
+      if (srcsetElements[i].srcset && srcsetElements[i].srcset !== 'null') {
+        this.assetElements.srcsetElements.push(srcsetElements[i])
+      }
+    }
+
     const styleURLRegex = /(url\()/
-    for (let i = 0; i < styleElements.length; i++) {
+    for (i = 0; i < styleElements.length; i++) {
       if (styleURLRegex.test(styleElements[i].textContent)) {
         this.assetElements.styleElements.push(styleElements[i])
       }
@@ -154,8 +164,9 @@ export default class MirroringController {
   }
 
   private static changeAssetsURL(): void {
-    // convert all relative path to absolute path
     const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
+
+    // convert all relative path to absolute path
     for (const hrefElement of this.assetElements.hrefElements) {
       if (!hostnameRegex.test(hrefElement.href)) {
         hrefElement.setAttribute(
@@ -175,6 +186,22 @@ export default class MirroringController {
           'https://' + this.url.hostname + srcElement.src
         )
       }
+    }
+
+    for (const srcsetElement of this.assetElements.srcsetElements) {
+      const newSrcset = srcsetElement.srcset
+        .split(',')
+        .map(src => {
+          src = src.trimLeft()
+
+          if (!hostnameRegex.test(src) && !src.startsWith('data:')) {
+            src = 'https://' + this.url.hostname + src
+          }
+
+          return src
+        })
+        .join(',')
+      srcsetElement.setAttribute('srcset', newSrcset)
     }
 
     const stylePathRegex = /(url\(\/)/gm
