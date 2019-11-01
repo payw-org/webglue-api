@@ -150,7 +150,7 @@ export default class MirroringController {
     }
 
     for (i = 0; i < srcsetElements.length; i++) {
-      if (srcsetElements[i].srcset) {
+      if (srcsetElements[i].srcset && srcsetElements[i].srcset !== 'null') {
         this.assetElements.srcsetElements.push(srcsetElements[i])
       }
     }
