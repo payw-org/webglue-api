@@ -124,8 +124,9 @@ export default class MirroringController {
     this.assetElements.srcElements = []
     this.assetElements.styleElements = []
 
+    let i
     // get all stylesheet and preload link elements
-    for (let i = 0; i < hrefElements.length; i++) {
+    for (i = 0; i < hrefElements.length; i++) {
       if (
         hrefElements[i].rel === 'stylesheet' ||
         hrefElements[i].rel === 'preload'
@@ -138,7 +139,7 @@ export default class MirroringController {
 
     // get all src elements
     for (const tagElements of srcElements) {
-      for (let i = 0; i < tagElements.length; i++) {
+      for (i = 0; i < tagElements.length; i++) {
         if (tagElements[i].src) {
           this.assetElements.srcElements.push(tagElements[i])
         }
@@ -146,7 +147,7 @@ export default class MirroringController {
     }
 
     const styleURLRegex = /(url\()/
-    for (let i = 0; i < styleElements.length; i++) {
+    for (i = 0; i < styleElements.length; i++) {
       if (styleURLRegex.test(styleElements[i].textContent)) {
         this.assetElements.styleElements.push(styleElements[i])
       }
