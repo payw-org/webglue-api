@@ -92,9 +92,7 @@ export default class MirroringController {
       },
       (error, res, body) => {
         if (!error) {
-          // update protocol and hostname to actual things
-          this.url.protocol = res.request.uri.protocol
-          this.url.hostname = res.request.uri.hostname
+          this.url.href = res.request.uri.href // update to actual href
           originalHTML = iconv.decode(body, charset(res.headers, body)) // decode the html according to its charset
         } else {
           throw error
