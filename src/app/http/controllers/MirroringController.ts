@@ -8,10 +8,11 @@ import { SimpleHandler, Request, Response } from 'Http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 
 interface AssetElementList {
-  hrefElements: HTMLLinkElement[]
-  srcElements: Array<HTMLImageElement | HTMLScriptElement | HTMLVideoElement>
-  srcsetElements: HTMLImageElement[]
-  styleElements: HTMLStyleElement[]
+  hrefAttrElements: Element[]
+  srcAttrElements: Element[]
+  srcsetAttrElements: Element[]
+  styleAttrElements: Element[]
+  styleTagElements: HTMLStyleElement[]
 }
 
 export default class MirroringController {
@@ -111,68 +112,48 @@ export default class MirroringController {
   }
 
   private static fetchAssetElements(): void {
-    const hrefElements = this.html.window.document.querySelectorAll('link')
-    const srcElements = [
-      this.html.window.document.querySelectorAll('img'),
-      this.html.window.document.querySelectorAll('script'),
-      this.html.window.document.querySelectorAll('video')
-    ]
-    const srcsetElements = this.html.window.document.querySelectorAll('img')
-    const styleElements = this.html.window.document.querySelectorAll('style')
+    this.assetElements.hrefAttrElements = Array.from(
+      this.html.window.document.querySelectorAll('[href]')
+    )
 
-    this.assetElements.hrefElements = []
-    this.assetElements.srcElements = []
-    this.assetElements.srcsetElements = []
-    this.assetElements.styleElements = []
+    this.assetElements.srcAttrElements = Array.from(
+      this.html.window.document.querySelectorAll('[src]')
+    )
 
-    let i
-    // get all stylesheet and preload link elements
-    for (i = 0; i < hrefElements.length; i++) {
-      if (
-        hrefElements[i].rel === 'stylesheet' ||
-        hrefElements[i].rel === 'preload'
-      ) {
-        if (hrefElements[i].href) {
-          this.assetElements.hrefElements.push(hrefElements[i])
-        }
-      }
-    }
-
-    // get all src elements
-    for (const tagElements of srcElements) {
-      for (i = 0; i < tagElements.length; i++) {
-        if (tagElements[i].src) {
-          this.assetElements.srcElements.push(tagElements[i])
-        }
-      }
-    }
-
-    for (i = 0; i < srcsetElements.length; i++) {
-      if (srcsetElements[i].srcset && srcsetElements[i].srcset !== 'null') {
-        this.assetElements.srcsetElements.push(srcsetElements[i])
-      }
-    }
+    this.assetElements.srcsetAttrElements = Array.from(
+      this.html.window.document.querySelectorAll('[srcset]')
+    )
 
     const styleURLRegex = /(url\()/
-    for (i = 0; i < styleElements.length; i++) {
-      if (styleURLRegex.test(styleElements[i].textContent)) {
-        this.assetElements.styleElements.push(styleElements[i])
-      }
-    }
+
+    this.assetElements.styleAttrElements = Array.from(
+      this.html.window.document.querySelectorAll('[style]')
+    ).filter(elem => styleURLRegex.test(elem.getAttribute('style')))
+
+    this.assetElements.styleTagElements = Array.from(
+      this.html.window.document.querySelectorAll('style')
+    ).filter(elem => styleURLRegex.test(elem.textContent))
   }
 
   private static changeAssetsURL(): void {
     // convert all relative path to absolute path
-    for (const hrefElement of this.assetElements.hrefElements) {
-      hrefElement.setAttribute('href', this.getAbsolutePath(hrefElement.href))
+    for (const hrefElement of this.assetElements.hrefAttrElements) {
+      hrefElement.setAttribute(
+        'href',
+        this.getAbsolutePath(hrefElement.getAttribute('href'))
+      )
     }
 
-    for (const srcElement of this.assetElements.srcElements) {
-      srcElement.setAttribute('src', this.getAbsolutePath(srcElement.src))
+    for (const srcElement of this.assetElements.srcAttrElements) {
+      srcElement.setAttribute(
+        'src',
+        this.getAbsolutePath(srcElement.getAttribute('src'))
+      )
     }
 
-    for (const srcsetElement of this.assetElements.srcsetElements) {
-      const newSrcset = srcsetElement.srcset
+    for (const srcsetElement of this.assetElements.srcsetAttrElements) {
+      const newSrcset = srcsetElement
+        .getAttribute('srcset')
         .split(',')
         .map(src => {
           src = src.trimLeft()
@@ -189,22 +170,23 @@ export default class MirroringController {
     }
 
     const stylePathRegex = /url\(['"]?([^'"()]+?)['"]?\)/gm
-    for (const styleElement of this.assetElements.styleElements) {
-      styleElement.innerHTML = styleElement.innerHTML.replace(
+
+    for (const styleAttrElement of this.assetElements.styleAttrElements) {
+      styleAttrElement.setAttribute(
+        'style',
+        styleAttrElement
+          .getAttribute('style')
+          .replace(stylePathRegex, substring => {
+            return this.stylePathReplacer(substring)
+          })
+      )
+    }
+
+    for (const styleTagElement of this.assetElements.styleTagElements) {
+      styleTagElement.innerHTML = styleTagElement.innerHTML.replace(
         stylePathRegex,
         substring => {
-          const extractedURL = new RegExp(stylePathRegex).exec(substring)
-          const absolutePath = this.getAbsolutePath(extractedURL[1])
-
-          if (substring.startsWith('url("')) {
-            substring = 'url("' + absolutePath + '")'
-          } else if (substring.startsWith("url('")) {
-            substring = "url('" + absolutePath + "')"
-          } else {
-            substring = 'url(' + absolutePath + ')'
-          }
-
-          return substring
+          return this.stylePathReplacer(substring)
         }
       )
     }
@@ -217,7 +199,7 @@ export default class MirroringController {
      * parent path: ../foo/bar
      */
     const rootPathRegex = /^\/(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
-    const currentPathRegex = /^(?!data:)(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
+    const currentPathRegex = /^(?!data:)(?!javascript:)(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
     const parentPathRegex = /^\.\.\/(([A-z0-9\-%._~()'!*:@,;+&=?#]+\/)*[A-z0-9\-%._~()'!*:@,;+&=?#]*$)?$/
     // const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
 
@@ -236,6 +218,23 @@ export default class MirroringController {
     }
 
     return path
+  }
+
+  private static stylePathReplacer(stylePath: string): string {
+    const stylePathRegex = /url\(['"]?([^'"()]+?)['"]?\)/gm
+
+    const extractedURL = new RegExp(stylePathRegex).exec(stylePath)
+    const absolutePath = this.getAbsolutePath(extractedURL[1])
+
+    if (stylePath.startsWith('url("')) {
+      stylePath = 'url("' + absolutePath + '")'
+    } else if (stylePath.startsWith("url('")) {
+      stylePath = "url('" + absolutePath + "')"
+    } else {
+      stylePath = 'url(' + absolutePath + ')'
+    }
+
+    return stylePath
   }
 
   private static createMirroredHTMLFile(): void {
