@@ -188,11 +188,24 @@ export default class MirroringController {
       srcsetElement.setAttribute('srcset', newSrcset)
     }
 
-    const stylePathRegex = /(url\(\/)/gm
+    const stylePathRegex = /url\(['"]?([^'"()]+?)['"]?\)/gm
     for (const styleElement of this.assetElements.styleElements) {
       styleElement.innerHTML = styleElement.innerHTML.replace(
         stylePathRegex,
-        'url(https://' + this.url.hostname + '/'
+        substring => {
+          const extractedURL = new RegExp(stylePathRegex).exec(substring)
+          const absolutePath = this.getAbsolutePath(extractedURL[1])
+
+          if (substring.startsWith('url("')) {
+            substring = 'url("' + absolutePath + '")'
+          } else if (substring.startsWith("url('")) {
+            substring = "url('" + absolutePath + "')"
+          } else {
+            substring = 'url(' + absolutePath + ')'
+          }
+
+          return substring
+        }
       )
     }
   }
