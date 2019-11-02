@@ -1,4 +1,5 @@
 import mongoose, { Document } from 'mongoose'
+import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 
 export interface UserDoc extends Document {
   googleId: string
@@ -7,6 +8,7 @@ export interface UserDoc extends Document {
   image: string
   name: string
   loggedInAt: Date
+  glueBoards: Array<string | GlueBoardDoc>
 }
 
 const userSchema = new mongoose.Schema({
@@ -15,7 +17,8 @@ const userSchema = new mongoose.Schema({
   nickname: { type: String, required: true, unique: true },
   image: { type: String, required: true },
   name: { type: String, required: true },
-  loggedInAt: { type: Date, required: true, default: new Date() }
+  loggedInAt: { type: Date, required: true, default: new Date() },
+  glueBoards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'GlueBoard' }]
 })
 
 export default userSchema
