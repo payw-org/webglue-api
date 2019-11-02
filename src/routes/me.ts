@@ -1,8 +1,8 @@
 import express from 'express'
-import CheckLogin from 'Http/middleware/CheckLogin'
-import ProfileController from 'Http/controllers/ProfileController'
-import RequestValidationError from 'Http/middleware/RequestValidationError'
-import Handle405Error from 'Http/middleware/Handle405Error'
+import CheckLogin from '@/http/middleware/CheckLogin'
+import ProfileController from '@/http/controllers/ProfileController'
+import RequestValidationError from '@/http/middleware/RequestValidationError'
+import Handle405Error from '@/http/middleware/Handle405Error'
 
 const meRouter = express.Router({ mergeParams: true })
 

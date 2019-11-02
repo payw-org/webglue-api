@@ -1,7 +1,7 @@
-import { Response, SimpleHandler } from 'Http/RequestHandler'
-import { UserDoc } from 'Migrate/schemas/user'
+import { Response, SimpleHandler } from '@/http/RequestHandler'
+import { UserDoc } from '@@/migrate/schemas/user'
 import { checkSchema, ValidationChain } from 'express-validator'
-import User from 'Migrate/models/user'
+import User from '@@/migrate/models/user'
 
 interface IndexResponseBody {
   email: string

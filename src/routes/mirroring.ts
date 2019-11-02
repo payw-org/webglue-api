@@ -1,7 +1,7 @@
 import express from 'express'
-import MirroringController from 'Http/controllers/MirroringController'
-import RequestValidationError from 'Http/middleware/RequestValidationError'
-import Handle405Error from 'Http/middleware/Handle405Error'
+import MirroringController from '@/http/controllers/MirroringController'
+import RequestValidationError from '@/http/middleware/RequestValidationError'
+import Handle405Error from '@/http/middleware/Handle405Error'
 
 const mirroringRouter = express.Router({ mergeParams: true })
 

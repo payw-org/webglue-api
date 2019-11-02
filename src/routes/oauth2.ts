@@ -1,7 +1,7 @@
 import express from 'express'
 import passport from 'passport'
-import Handle405Error from 'Http/middleware/Handle405Error'
-import OAuth2Controller from 'Http/controllers/OAuth2Controller'
+import Handle405Error from '@/http/middleware/Handle405Error'
+import OAuth2Controller from '@/http/controllers/OAuth2Controller'
 
 const oauth2Router = express.Router({ mergeParams: true })
 

@@ -4,7 +4,7 @@ import iconv from 'iconv-lite'
 import charset from 'charset'
 import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
-import { SimpleHandler, Request, Response } from 'Http/RequestHandler'
+import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 
 interface AssetElementList {

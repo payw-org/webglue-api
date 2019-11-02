@@ -1,8 +1,8 @@
 import express from 'express'
-import oauth2Router from 'Routes/oauth2'
-import meRouter from 'Routes/me'
-import { UserDoc } from 'Migrate/schemas/user'
-import mirroringRouter from 'Routes/mirroring'
+import oauth2Router from '@@/routes/oauth2'
+import meRouter from '@@/routes/me'
+import { UserDoc } from '@@/migrate/schemas/user'
+import mirroringRouter from '@@/routes/mirroring'
 
 const mainRouter = express.Router()
 

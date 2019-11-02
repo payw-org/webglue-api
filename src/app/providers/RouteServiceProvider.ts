@@ -2,12 +2,12 @@ import helmet from 'helmet'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 import express, { Express } from 'express'
-import session from 'Configs/session'
-import passport from 'Configs/passport'
-import Handle404Error from 'Http/middleware/Handle404Error'
-import HandleSyntaxError from 'Http/middleware/HandleSyntaxError'
-import Handle500Error from 'Http/middleware/Handle500Error'
-import mainRouter from 'Routes/api'
+import session from '@@/configs/session'
+import passport from '@@/configs/passport'
+import Handle404Error from '@/http/middleware/Handle404Error'
+import HandleSyntaxError from '@/http/middleware/HandleSyntaxError'
+import Handle500Error from '@/http/middleware/Handle500Error'
+import mainRouter from '@@/routes/api'
 
 export default class RouteServiceProvider {
   /**

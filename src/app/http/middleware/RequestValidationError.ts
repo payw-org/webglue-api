@@ -1,4 +1,4 @@
-import { NextHandler, Response } from 'Http/RequestHandler'
+import { NextHandler, Response } from '@/http/RequestHandler'
 import { validationResult } from 'express-validator'
 
 export default class RequestValidationError {
