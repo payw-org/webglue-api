@@ -45,9 +45,6 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.2",
-    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
-    "@babel/preset-env": "^7.6.2",
     "@types/app-root-path": "^1.2.4",
     "@types/charset": "^1.0.1",
     "@types/connect-mongo": "^0.0.44",
@@ -68,11 +65,6 @@
     "@typescript-eslint/eslint-plugin": "^2.3.2",
     "@typescript-eslint/parser": "^2.3.2",
     "app-root-path": "^2.2.1",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^8.0.6",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-stage-0": "^6.24.1",
-    "clean-terminal-webpack-plugin": "^2.0.5",
     "dotenv": "^8.1.0",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.3.0",
@@ -86,13 +78,6 @@
     "prettier": "^1.18.2",
     "request-promise-native": "^1.0.7",
     "saslprep": "^1.0.3",
-    "ts-loader": "^6.2.0",
-    "typescript": "^3.6.3",
-    "webpack": "^4.41.0",
-    "webpack-cli": "^3.3.9",
-    "webpack-merge": "^4.2.2",
-    "webpack-messages": "^2.0.4",
-    "webpack-node-externals": "^1.7.2"
     "ts-node": "^8.4.1",
     "typescript": "^3.6.3"
   }
