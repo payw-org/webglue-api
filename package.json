@@ -4,6 +4,7 @@
   "description": "A RESTful API for webglue.me",
   "scripts": {
     "build": "tsc",
+    "dev": "nodemon -r dotenv/config --exec ts-node -- ./src/main.ts",
     "start": "pm2 start ./pm2.config.js",
     "stop": "pm2 stop ./pm2.config.js",
     "restart": "pm2 restart ./pm2.config.js"
