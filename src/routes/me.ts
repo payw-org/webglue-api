@@ -3,6 +3,7 @@ import CheckLogin from '@/http/middleware/CheckLogin'
 import ProfileController from '@/http/controllers/ProfileController'
 import RequestValidationError from '@/http/middleware/RequestValidationError'
 import Handle405Error from '@/http/middleware/Handle405Error'
+import GlueBoardController from '@/http/controllers/GlueBoardController'
 
 const meRouter = express.Router({ mergeParams: true })
 
@@ -29,4 +30,7 @@ meRouter
   )
   .all(Handle405Error.handler())
 
+meRouter
+  .route('/glueboards')
+  .get(GlueBoardController.index())
 export default meRouter
