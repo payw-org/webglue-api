@@ -33,4 +33,11 @@ meRouter
 meRouter
   .route('/glueboards')
   .get(GlueBoardController.index())
+  .post(
+    GlueBoardController.validateCreate(),
+    RequestValidationError.handler(),
+    GlueBoardController.create()
+  )
+  .all(Handle405Error.handler())
+
 export default meRouter
