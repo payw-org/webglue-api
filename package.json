@@ -4,7 +4,9 @@
   "description": "A RESTful API for webglue.me",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon -r dotenv/config --exec ts-node -- ./src/main.ts",
+    "dev": "yarn run start && tsc -w --incremental",
+    "dev:nodemon": "nodemon -e ts --exec \"tsc --incremental && node -r dotenv/config build/src/main.js\"",
+    "dev:ts-node": "nodemon -r dotenv/config --exec ts-node -r tsconfig-paths/register ./src/main.ts",
     "start": "pm2 start ./pm2.config.js",
     "stop": "pm2 stop ./pm2.config.js",
     "restart": "pm2 restart ./pm2.config.js"
@@ -80,6 +82,7 @@
     "request-promise-native": "^1.0.7",
     "saslprep": "^1.0.3",
     "ts-node": "^8.4.1",
+    "tsconfig-paths": "^3.9.0",
     "typescript": "^3.6.3"
   }
 }
