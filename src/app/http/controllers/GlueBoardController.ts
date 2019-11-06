@@ -223,7 +223,14 @@ export default class GlueBoardController {
    */
   public static delete(): SimpleHandler {
     return async (req, res): Promise<Response> => {
+      const user = req.user as UserDoc
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
+
+      // delete from user's GlueBoard list
+      user.glueBoards.splice(user.glueBoards.indexOf(glueBoard._id), 1)
+      await user.save()
+
+      // delete the GlueBoard
       await glueBoard.remove()
 
       return res.status(204).json()
