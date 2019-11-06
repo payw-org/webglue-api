@@ -88,6 +88,11 @@ export default class GlueBoardController {
         in: 'body',
         isHexColor: true,
         trim: true,
+        customSanitizer: {
+          options: (value: string): string => {
+            return value.toUpperCase()
+          }
+        },
         errorMessage: '`color` must be a hex color.'
       }
     })
@@ -175,6 +180,11 @@ export default class GlueBoardController {
         in: 'body',
         isHexColor: true,
         trim: true,
+        customSanitizer: {
+          options: (value: string): string => {
+            return value.toUpperCase()
+          }
+        },
         errorMessage: '`color` must be a hex color.'
       }
     })
