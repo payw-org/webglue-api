@@ -9,9 +9,19 @@ import generate from 'nanoid/generate'
 interface IndexResponseBody {
   glueBoards: Array<{
     id: string
+    category: {
+      name: string
+      color: string
+    }
+  }>
+}
+
+interface GetResponseBody {
+  id: string
+  category: {
     name: string
     color: string
-  }>
+  }
 }
 
 export default class GlueBoardController {
@@ -106,6 +116,25 @@ export default class GlueBoardController {
         .status(201)
         .location(glueBoard.id)
         .json()
+    }
+  }
+
+  /**
+   * Get the GlueBoard
+   */
+  public static get(): SimpleHandler {
+    return (req, res): Response => {
+      const glueBoard = res.locals.glueBoard as GlueBoardDoc
+
+      const responseBody: GetResponseBody = {
+        id: glueBoard.id,
+        category: {
+          name: glueBoard.category.name,
+          color: glueBoard.category.color
+        }
+      }
+
+      return res.status(200).json(responseBody)
     }
   }
 }
