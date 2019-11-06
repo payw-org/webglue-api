@@ -42,7 +42,7 @@ export default class ProfileController {
         escape: true,
         custom: {
           // check if nickname is already in use
-          options: async (nickname: string, { req }): Promise<void> => {
+          options: async (nickname: string, { req }): Promise<boolean> => {
             const duplicateUser = (await User.findOne(
               {
                 nickname: { $regex: new RegExp(nickname, 'i') } // compare case insensitive
@@ -59,6 +59,8 @@ export default class ProfileController {
                 throw new Error('`nickname` already in use.')
               }
             }
+
+            return true
           }
         },
         errorMessage: '`nickname` must be a string.'

@@ -68,7 +68,7 @@ export default class GlueBoardController {
         trim: true,
         custom: {
           // check if category name is already in use
-          options: async (name: string, { req }): Promise<void> => {
+          options: async (name: string, { req }): Promise<boolean> => {
             const glueBoardIDs = ((req as Request).user as UserDoc).glueBoards
 
             const exists = await GlueBoard.exists({
@@ -79,6 +79,8 @@ export default class GlueBoardController {
             if (exists) {
               throw new Error('`name` already in use.')
             }
+
+            return true
           }
         },
         errorMessage: '`name` must be a string.'
@@ -154,7 +156,7 @@ export default class GlueBoardController {
         custom: {
           // check if category name is already in use
           // if update to same name, pass to handler
-          options: async (name: string, { req }): Promise<void> => {
+          options: async (name: string, { req }): Promise<boolean> => {
             const request = req as Request
             const glueBoardIDs = (request.user as UserDoc).glueBoards
 
@@ -172,6 +174,8 @@ export default class GlueBoardController {
                 throw new Error('`name` already in use.')
               }
             }
+
+            return true
           }
         },
         errorMessage: '`name` must be a string.'
