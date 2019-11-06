@@ -1,4 +1,4 @@
-import { Response, NextHandler } from 'Http/RequestHandler'
+import { Response, NextHandler } from '@/http/RequestHandler'
 
 export default class CheckLogin {
   /**

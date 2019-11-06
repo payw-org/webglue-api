@@ -1,4 +1,4 @@
-import { Response, SimpleHandler } from 'Http/RequestHandler'
+import { Response, SimpleHandler } from '@/http/RequestHandler'
 
 export default class Handle404Error {
   /**

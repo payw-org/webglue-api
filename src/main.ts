@@ -1,6 +1,7 @@
+import 'module-alias/register'
 import dotenv from 'dotenv'
-import DBServiceProvider from 'Providers/DBServiceProvider'
-import RouteServiceProvider from 'Providers/RouteServiceProvider'
+import DBServiceProvider from '@/providers/DBServiceProvider'
+import RouteServiceProvider from '@/providers/RouteServiceProvider'
 
 async function bootApp(): Promise<void> {
   await DBServiceProvider.boot()

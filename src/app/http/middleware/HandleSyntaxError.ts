@@ -1,5 +1,5 @@
-import { Response, ErrorHandler } from 'Http/RequestHandler'
-import LogHelper from 'Helpers/LogHelper'
+import { Response, ErrorHandler } from '@/http/RequestHandler'
+import LogHelper from '@/helpers/LogHelper'
 
 export default class HandleSyntaxError {
   /**

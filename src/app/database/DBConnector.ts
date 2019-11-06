@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-import dbConfig from 'Configs/database'
-import LogHelper from 'Helpers/LogHelper'
+import dbConfig from '@@/configs/database'
+import LogHelper from '@/helpers/LogHelper'
 
 export default class DBConnector {
   /**

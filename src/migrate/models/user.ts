@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import userSchema from 'Migrate/schemas/user'
+import userSchema from '@@/migrate/schemas/user'
 
 const User = mongoose.model('User', userSchema)
 

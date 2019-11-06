@@ -1,5 +1,5 @@
-import { SimpleHandler } from 'Http/RequestHandler'
-import { UserDoc } from 'Migrate/schemas/user'
+import { SimpleHandler } from '@/http/RequestHandler'
+import { UserDoc } from '@@/migrate/schemas/user'
 import url from 'url'
 
 export default class OAuth2Controller {
