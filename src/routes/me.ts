@@ -40,6 +40,7 @@ meRouter
 /**
  * GET: get user's all GlueBoards
  * POST: create new GlueBoard
+ * PATCH: move the GlueBoard order in collection
  */
 meRouter
   .route('/glueboards')
@@ -48,6 +49,11 @@ meRouter
     GlueBoardController.validateCreate(),
     RequestValidationError.handler(),
     GlueBoardController.create()
+  )
+  .patch(
+    GlueBoardController.validateMove(),
+    RequestValidationError.handler(),
+    GlueBoardController.move()
   )
   .all(Handle405Error.handler())
 

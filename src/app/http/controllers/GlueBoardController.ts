@@ -127,6 +127,80 @@ export default class GlueBoardController {
     }
   }
 
+  public static validateMove(): ValidationChain[] {
+    return checkSchema({
+      glueBoardID: {
+        exists: true,
+        in: 'body',
+        isString: true,
+        trim: true,
+        custom: {
+          // check if the GlueBoard is user's own
+          options: async (glueBoardID: string, { req }): Promise<boolean> => {
+            const glueBoardIDs = ((req as Request).user as UserDoc).glueBoards
+            const movedGlueBoard = await GlueBoard.findOne(
+              { id: glueBoardID },
+              { _id: 1 }
+            ).lean()
+
+            if (movedGlueBoard) {
+              if (glueBoardIDs.includes(movedGlueBoard._id)) {
+                return true
+              }
+            }
+
+            throw new Error('Invalid `glueBoardID`')
+          }
+        },
+        errorMessage: '`glueBoardID` must be a string.'
+      },
+      newPosition: {
+        exists: true,
+        in: 'body',
+        isInt: true,
+        custom: {
+          // check if the new position is valid
+          options: (newPosition: number, { req }): boolean => {
+            const glueBoardCount = ((req as Request).user as UserDoc).glueBoards
+              .length
+
+            if (newPosition < 0 || newPosition >= glueBoardCount) {
+              throw new Error('Invalid `newPosition`')
+            }
+
+            return true
+          }
+        },
+        errorMessage: '`newPosition` must be a integer.'
+      }
+    })
+  }
+
+  /**
+   * Move the GlueBoard order in collection.
+   */
+  public static move(): SimpleHandler {
+    return async (req, res): Promise<Response> => {
+      const user = req.user as UserDoc
+      const id = req.body.glueBoardID
+      const newPosition = req.body.newPosition
+
+      const movedGlueBoard = await GlueBoard.findOne(
+        { id: id },
+        { _id: 1 }
+      ).lean()
+      const oldPosition = user.glueBoards.indexOf(movedGlueBoard._id)
+
+      // move to new position from old position
+      user.glueBoards.splice(oldPosition, 1)
+      user.glueBoards.splice(newPosition, 0, movedGlueBoard._id)
+
+      await user.save()
+
+      return res.status(204).json()
+    }
+  }
+
   /**
    * Get the GlueBoard
    */
