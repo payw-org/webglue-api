@@ -15,8 +15,12 @@ interface IndexResponseBody {
 }
 
 export default class GlueBoardController {
+  /**
+   * Get user's all GlueBoards
+   */
   public static index(): SimpleHandler {
     return async (req, res): Promise<Response> => {
+      // populate GlueBoards
       const user = (await User.findById((req.user as UserDoc)._id, {
         _id: 0,
         glueBoards: 1
@@ -24,19 +28,20 @@ export default class GlueBoardController {
         .lean()
         .populate({
           path: 'glueBoards',
-          select: 'id category -_id'
+          select: '-_id -category._id'
         })) as UserDoc
+
       const glueBoards = user.glueBoards as GlueBoardDoc[]
 
       const responseBody: IndexResponseBody = {
         glueBoards: []
       }
 
+      // compose response body
       for (const glueBoard of glueBoards) {
         responseBody.glueBoards.push({
           id: glueBoard.id,
-          name: glueBoard.category.name,
-          color: glueBoard.category.color
+          category: glueBoard.category
         })
       }
 
@@ -78,16 +83,21 @@ export default class GlueBoardController {
     })
   }
 
+  /**
+   * Create new GlueBoard
+   */
   public static create(): SimpleHandler {
     return async (req, res): Promise<Response> => {
+      // create a GlueBoard
       const glueBoard = (await GlueBoard.create({
-        id: generate('0123456789abcdefghijklmnopqrstuvwxyz', 14),
+        id: generate('0123456789abcdefghijklmnopqrstuvwxyz', 14), // url id
         category: {
           name: req.body.name,
           color: req.body.color
         }
       })) as GlueBoardDoc
 
+      // Add new GlueBoard to user
       const user = req.user as UserDoc
       user.glueBoards.push(glueBoard._id)
       await user.save()
