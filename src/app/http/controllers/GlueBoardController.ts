@@ -138,6 +138,71 @@ export default class GlueBoardController {
     }
   }
 
+  public static validateUpdate(): ValidationChain[] {
+    return checkSchema({
+      name: {
+        optional: true,
+        in: 'body',
+        isString: true,
+        trim: true,
+        custom: {
+          // check if category name is already in use
+          // if update to same name, pass to handler
+          options: async (name: string, { req }): Promise<void> => {
+            const request = req as Request
+            const glueBoardIDs = (request.user as UserDoc).glueBoards
+
+            const duplicateGlueBoard = (await GlueBoard.findOne(
+              {
+                _id: { $in: glueBoardIDs },
+                'category.name': name
+              },
+              { id: 1 }
+            ).lean()) as GlueBoardDoc
+
+            if (duplicateGlueBoard) {
+              // if name is already in use from other GlueBoard
+              if (duplicateGlueBoard.id !== request.params.glueboard) {
+                throw new Error('`name` already in use.')
+              }
+            }
+          }
+        },
+        errorMessage: '`name` must be a string.'
+      },
+      color: {
+        optional: true,
+        in: 'body',
+        isHexColor: true,
+        trim: true,
+        errorMessage: '`color` must be a hex color.'
+      }
+    })
+  }
+
+  /**
+   * Partial update the GlueBoard.
+   */
+  public static update(): SimpleHandler {
+    return async (req, res): Promise<Response> => {
+      const glueBoard = res.locals.glueBoard as GlueBoardDoc
+
+      // update category name
+      if (req.body.name && req.body.name !== glueBoard.category.name) {
+        glueBoard.category.name = req.body.name
+      }
+
+      // update category color
+      if (req.body.color && req.body.color !== glueBoard.category.color) {
+        glueBoard.category.color = req.body.color
+      }
+
+      await glueBoard.save()
+
+      return res.status(204).json()
+    }
+  }
+
   /**
    * Delete the GlueBoard
    */

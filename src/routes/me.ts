@@ -53,11 +53,17 @@ meRouter
 
 /**
  * GET: get the GlueBoard
+ * PATCH: partial update the GlueBoard
  * DELETE: delete the GlueBoard
  */
 meRouter
   .route('/glueboards/:glueboard')
   .get(GlueBoardController.get())
+  .patch(
+    GlueBoardController.validateUpdate(),
+    RequestValidationError.handler(),
+    GlueBoardController.update()
+  )
   .delete(GlueBoardController.delete())
   .all(Handle405Error.handler())
 
