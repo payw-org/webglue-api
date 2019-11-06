@@ -4,6 +4,7 @@ import ProfileController from '@/http/controllers/ProfileController'
 import RequestValidationError from '@/http/middleware/RequestValidationError'
 import Handle405Error from '@/http/middleware/Handle405Error'
 import GlueBoardController from '@/http/controllers/GlueBoardController'
+import CheckGlueBoard from '@/http/middleware/CheckGlueBoard'
 
 const meRouter = express.Router({ mergeParams: true })
 
@@ -11,6 +12,12 @@ const meRouter = express.Router({ mergeParams: true })
  * Middleware
  */
 meRouter.use('*', CheckLogin.handler())
+meRouter.use(
+  '/glueboards/:glueboard',
+  CheckGlueBoard.validate(),
+  RequestValidationError.handler(),
+  CheckGlueBoard.handler()
+)
 
 /**
  * Controller
@@ -30,6 +37,10 @@ meRouter
   )
   .all(Handle405Error.handler())
 
+/**
+ * GET: get user's all GlueBoards
+ * POST: create new GlueBoard
+ */
 meRouter
   .route('/glueboards')
   .get(GlueBoardController.index())
@@ -38,6 +49,14 @@ meRouter
     RequestValidationError.handler(),
     GlueBoardController.create()
   )
+  .all(Handle405Error.handler())
+
+/**
+ * GET: get the GlueBoard
+ */
+meRouter
+  .route('/glueboards/:glueboard')
+  .get(GlueBoardController.get())
   .all(Handle405Error.handler())
 
 export default meRouter
