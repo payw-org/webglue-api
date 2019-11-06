@@ -1,4 +1,4 @@
-import { Response, SimpleHandler } from '@/http/RequestHandler'
+import { Request, Response, SimpleHandler } from '@/http/RequestHandler'
 import { UserDoc } from '@@/migrate/schemas/user'
 import { checkSchema, ValidationChain } from 'express-validator'
 import User from '@@/migrate/models/user'
@@ -40,6 +40,27 @@ export default class ProfileController {
         isLength: { options: { min: 2, max: 20 } },
         trim: true,
         escape: true,
+        custom: {
+          // check if nickname is already in use
+          options: async (nickname: string, { req }): Promise<void> => {
+            const duplicateUser = (await User.findOne(
+              {
+                nickname: { $regex: new RegExp(nickname, 'i') } // compare case insensitive
+              },
+              { _id: 1 }
+            ).lean()) as UserDoc
+
+            if (duplicateUser) {
+              // if nickname is already in use from other user
+              if (
+                duplicateUser._id.toString() !==
+                ((req as Request).user as UserDoc)._id.toString()
+              ) {
+                throw new Error('`nickname` already in use.')
+              }
+            }
+          }
+        },
         errorMessage: '`nickname` must be a string.'
       },
       image: {
@@ -69,27 +90,17 @@ export default class ProfileController {
       const user = req.user as UserDoc
 
       // update nickname
-      if (req.body.nickname && req.body.nickname !== user.nickname) {
-        // check if nickname is duplicate
-        if (await User.count({ nickname: req.body.nickname })) {
-          return res.status(409).json({
-            err: {
-              param: 'nickname',
-              msg: 'nickname is duplicate.'
-            }
-          })
-        }
-
+      if (req.body.nickname) {
         user.nickname = req.body.nickname
       }
 
       // update image
-      if (req.body.image && req.body.image !== user.image) {
+      if (req.body.image) {
         user.image = req.body.image
       }
 
       // update name
-      if (req.body.name && req.body.name !== user.name) {
+      if (req.body.name) {
         user.name = req.body.name
       }
 
