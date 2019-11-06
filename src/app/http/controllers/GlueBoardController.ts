@@ -73,7 +73,7 @@ export default class GlueBoardController {
 
             const exists = await GlueBoard.exists({
               _id: { $in: glueBoardIDs },
-              'category.name': name
+              'category.name': { $regex: new RegExp(name, 'i') }
             })
 
             if (exists) {
@@ -160,7 +160,7 @@ export default class GlueBoardController {
             const duplicateGlueBoard = (await GlueBoard.findOne(
               {
                 _id: { $in: glueBoardIDs },
-                'category.name': name
+                'category.name': { $regex: new RegExp(name, 'i') }
               },
               { id: 1 }
             ).lean()) as GlueBoardDoc
@@ -198,12 +198,12 @@ export default class GlueBoardController {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
 
       // update category name
-      if (req.body.name && req.body.name !== glueBoard.category.name) {
+      if (req.body.name) {
         glueBoard.category.name = req.body.name
       }
 
       // update category color
-      if (req.body.color && req.body.color !== glueBoard.category.color) {
+      if (req.body.color) {
         glueBoard.category.color = req.body.color
       }
 
