@@ -73,7 +73,7 @@ export default class GlueBoardController {
 
             const exists = await GlueBoard.exists({
               _id: { $in: glueBoardIDs },
-              'category.name': { $regex: new RegExp(name, 'i') }
+              'category.name': { $regex: new RegExp(name, 'i') } // compare case insensitive
             })
 
             if (exists) {
@@ -89,6 +89,7 @@ export default class GlueBoardController {
         isHexColor: true,
         trim: true,
         customSanitizer: {
+          // convert color code to uppercase
           options: (value: string): string => {
             return value.toUpperCase()
           }
