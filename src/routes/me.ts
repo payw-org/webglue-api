@@ -53,10 +53,12 @@ meRouter
 
 /**
  * GET: get the GlueBoard
+ * DELETE: delete the GlueBoard
  */
 meRouter
   .route('/glueboards/:glueboard')
   .get(GlueBoardController.get())
+  .delete(GlueBoardController.delete())
   .all(Handle405Error.handler())
 
 export default meRouter

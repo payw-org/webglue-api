@@ -137,4 +137,16 @@ export default class GlueBoardController {
       return res.status(200).json(responseBody)
     }
   }
+
+  /**
+   * Delete the GlueBoard
+   */
+  public static delete(): SimpleHandler {
+    return async (req, res): Promise<Response> => {
+      const glueBoard = res.locals.glueBoard as GlueBoardDoc
+      await glueBoard.remove()
+
+      return res.status(204).json()
+    }
+  }
 }
