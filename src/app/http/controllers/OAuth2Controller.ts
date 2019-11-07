@@ -1,13 +1,13 @@
-import { SimpleHandler } from '@/http/RequestHandler'
+import { Response, SimpleHandler } from '@/http/RequestHandler'
 import { UserDoc } from '@@/migrate/schemas/user'
 import url from 'url'
 
 export default class OAuth2Controller {
   public static logout(): SimpleHandler {
-    return (req, res): void => {
+    return (req, res): Response => {
       req.logOut()
 
-      return res.redirect(process.env.DOMAIN)
+      return res.status(204).json()
     }
   }
 
