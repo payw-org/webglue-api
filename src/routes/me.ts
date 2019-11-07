@@ -6,18 +6,28 @@ import Handle405Error from '@/http/middleware/Handle405Error'
 import GlueBoardController from '@/http/controllers/GlueBoardController'
 import CheckGlueBoard from '@/http/middleware/CheckGlueBoard'
 import FragmentController from '@/http/controllers/FragmentController'
+import CheckFragment from '@/http/middleware/CheckFragment'
 
 const meRouter = express.Router({ mergeParams: true })
 
 /**
  * Middleware
  */
+
 meRouter.use('*', CheckLogin.handler())
+
 meRouter.use(
   '/glueboards/:glueboard',
   CheckGlueBoard.validate(),
   RequestValidationError.handler(),
   CheckGlueBoard.handler()
+)
+
+meRouter.use(
+  '/glueboards/:glueboard/fragments/:fragment',
+  CheckFragment.validate(),
+  RequestValidationError.handler(),
+  CheckFragment.handler()
 )
 
 /**
