@@ -128,7 +128,7 @@ export default class FragmentController {
 
       return res
         .status(201)
-        .location(fragment.id)
+        .location(req.originalUrl + '/' + fragment.id)
         .json()
     }
   }
