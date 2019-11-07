@@ -153,6 +153,57 @@ export default class FragmentController {
     }
   }
 
+  public static validateUpdate(): ValidationChain[] {
+    return checkSchema({
+      xPos: {
+        optional: true,
+        in: 'body',
+        isNumeric: true,
+        errorMessage: '`xPos` must be a numeric.'
+      },
+      yPos: {
+        optional: true,
+        in: 'body',
+        isNumeric: true,
+        errorMessage: '`yPos` must be a numeric.'
+      },
+      scale: {
+        optional: true,
+        in: 'body',
+        isNumeric: true,
+        errorMessage: '`scale` must be a numeric.'
+      }
+    })
+  }
+
+  /**
+   * Partial update the fragment
+   */
+  public static update(): SimpleHandler {
+    return async (req, res): Promise<Response> => {
+      const fragment = res.locals.fragment as FragmentDoc
+
+      // update x position
+      if (req.body.xPos) {
+        fragment.xPos = req.body.xPos
+      }
+
+      // update y position
+      if (req.body.yPos) {
+        fragment.yPos = req.body.yPos
+      }
+
+      // update scale
+      if (req.body.scale) {
+        fragment.scale = req.body.scale
+      }
+
+      await fragment.save()
+
+      return res.status(204).json()
+    }
+  }
+
   /**
    * Delete the fragment
    */

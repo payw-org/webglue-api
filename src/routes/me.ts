@@ -100,11 +100,17 @@ meRouter
 
 /**
  * GET: get the fragment
+ * PATCH: partial update the fragment
  * DELETE: delete the fragment
  */
 meRouter
   .route('/glueboards/:glueboard/fragments/:fragment')
   .get(FragmentController.get())
+  .patch(
+    FragmentController.validateUpdate(),
+    RequestValidationError.handler(),
+    FragmentController.update()
+  )
   .delete(FragmentController.delete())
   .all(Handle405Error.handler())
 
