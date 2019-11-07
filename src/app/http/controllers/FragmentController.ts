@@ -17,6 +17,15 @@ interface IndexResponseBody {
   }>
 }
 
+interface GetResponseBody {
+  id: string
+  url: string
+  selector: string
+  xPos: number
+  yPos: number
+  scale: number
+}
+
 export default class FragmentController {
   /**
    * Get all fragments of the GlueBoard.
@@ -121,6 +130,26 @@ export default class FragmentController {
         .status(201)
         .location(fragment.id)
         .json()
+    }
+  }
+
+  /**
+   * Get the fragment
+   */
+  public static get(): SimpleHandler {
+    return (req, res): Response => {
+      const fragment = res.locals.fragment as FragmentDoc
+
+      const responseBody: GetResponseBody = {
+        id: fragment.id,
+        url: fragment.url,
+        selector: fragment.selector,
+        xPos: fragment.xPos,
+        yPos: fragment.yPos,
+        scale: fragment.scale
+      }
+
+      return res.status(200).json(responseBody)
     }
   }
 }

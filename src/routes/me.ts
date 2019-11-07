@@ -98,4 +98,8 @@ meRouter
   )
   .all(Handle405Error.handler())
 
+meRouter
+  .route('/glueboards/:glueboard/fragments/:fragment')
+  .get(FragmentController.get())
+
 export default meRouter
