@@ -5,6 +5,7 @@ import RequestValidationError from '@/http/middleware/RequestValidationError'
 import Handle405Error from '@/http/middleware/Handle405Error'
 import GlueBoardController from '@/http/controllers/GlueBoardController'
 import CheckGlueBoard from '@/http/middleware/CheckGlueBoard'
+import FragmentController from '@/http/controllers/FragmentController'
 
 const meRouter = express.Router({ mergeParams: true })
 
@@ -71,6 +72,14 @@ meRouter
     GlueBoardController.update()
   )
   .delete(GlueBoardController.delete())
+  .all(Handle405Error.handler())
+
+/**
+ * GET: get all fragments of the GlueBoard
+ */
+meRouter
+  .route('/glueboards/:glueboard/fragments')
+  .get(FragmentController.index())
   .all(Handle405Error.handler())
 
 export default meRouter
