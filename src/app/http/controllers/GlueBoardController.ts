@@ -241,9 +241,9 @@ export default class GlueBoardController {
       if (req.body.position !== undefined) {
         const user = req.user as UserDoc
         const newPosition = req.body.position
-        const oldPosition = user.glueBoards.indexOf(glueBoard._id)
+        const currPosition = user.glueBoards.indexOf(glueBoard._id)
 
-        user.glueBoards.splice(oldPosition, 1)
+        user.glueBoards.splice(currPosition, 1)
         user.glueBoards.splice(newPosition, 0, glueBoard._id)
 
         await user.save()
