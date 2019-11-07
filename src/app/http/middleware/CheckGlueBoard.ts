@@ -4,9 +4,6 @@ import GlueBoard from '@@/migrate/models/glue-board'
 import { UserDoc } from '@@/migrate/schemas/user'
 
 export default class CheckGlueBoard {
-  /**
-   * Validator for GlueBoard
-   */
   public static validate(): ValidationChain[] {
     return checkSchema({
       glueboard: {
