@@ -76,10 +76,16 @@ meRouter
 
 /**
  * GET: get all fragments of the GlueBoard
+ * POST: create new fragment
  */
 meRouter
   .route('/glueboards/:glueboard/fragments')
   .get(FragmentController.index())
+  .post(
+    FragmentController.validateCreate(),
+    RequestValidationError.handler(),
+    FragmentController.create()
+  )
   .all(Handle405Error.handler())
 
 export default meRouter

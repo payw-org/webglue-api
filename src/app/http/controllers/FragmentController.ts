@@ -54,4 +54,73 @@ export default class FragmentController {
       return res.status(200).json(responseBody)
     }
   }
+
+  public static validateCreate(): ValidationChain[] {
+    return checkSchema({
+      url: {
+        exists: true,
+        in: 'body',
+        isURL: true,
+        trim: true,
+        errorMessage: '`url` must be a url format.'
+      },
+      selector: {
+        exists: true,
+        in: 'body',
+        isString: true,
+        trim: true,
+        errorMessage: '`selector` must be a string.'
+      },
+      xPos: {
+        exists: true,
+        in: 'body',
+        isNumeric: true,
+        errorMessage: '`xPos` must be a numeric.'
+      },
+      yPos: {
+        exists: true,
+        in: 'body',
+        isNumeric: true,
+        errorMessage: '`yPos` must be a numeric.'
+      },
+      scale: {
+        optional: true,
+        in: 'body',
+        isNumeric: true,
+        errorMessage: '`scale` must be a numeric.'
+      }
+    })
+  }
+
+  /**
+   * Create new fragment.
+   */
+  public static create(): SimpleHandler {
+    return async (req, res): Promise<Response> => {
+      // create a fragment
+      const fragment = (await Fragment.create({
+        id: generate('0123456789abcdefghijklmnopqrstuvwxyz', 16), // url id
+        url: req.body.url,
+        selector: req.body.selector,
+        xPos: req.body.xPos,
+        yPos: req.body.yPos
+      })) as FragmentDoc
+
+      // if scale is set, apply to document.
+      if (req.body.scale) {
+        fragment.scale = req.body.scale
+        await fragment.save()
+      }
+
+      // add new fragment to GlueBoard
+      const glueBoard = res.locals.glueBoard as GlueBoardDoc
+      glueBoard.fragments.push(fragment._id)
+      await glueBoard.save()
+
+      return res
+        .status(201)
+        .location(fragment.id)
+        .json()
+    }
+  }
 }
