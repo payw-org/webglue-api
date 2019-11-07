@@ -62,7 +62,9 @@ export default class GlueBoardController {
   public static validateCreate(): ValidationChain[] {
     return checkSchema({
       name: {
-        exists: true,
+        exists: {
+          options: { checkFalsy: true }
+        },
         in: 'body',
         isString: true,
         trim: true,
@@ -223,7 +225,9 @@ export default class GlueBoardController {
   public static validateUpdate(): ValidationChain[] {
     return checkSchema({
       name: {
-        optional: true,
+        optional: {
+          options: { checkFalsy: true }
+        },
         in: 'body',
         isString: true,
         trim: true,

@@ -74,7 +74,9 @@ export default class FragmentController {
         errorMessage: '`url` must be a url format.'
       },
       selector: {
-        exists: true,
+        exists: {
+          options: { checkFalsy: true }
+        },
         in: 'body',
         isString: true,
         trim: true,
@@ -184,12 +186,12 @@ export default class FragmentController {
       const fragment = res.locals.fragment as FragmentDoc
 
       // update x position
-      if (req.body.xPos) {
+      if (req.body.xPos !== undefined) {
         fragment.xPos = req.body.xPos
       }
 
       // update y position
-      if (req.body.yPos) {
+      if (req.body.yPos !== undefined) {
         fragment.yPos = req.body.yPos
       }
 
