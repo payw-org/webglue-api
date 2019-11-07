@@ -5,18 +5,29 @@ import RequestValidationError from '@/http/middleware/RequestValidationError'
 import Handle405Error from '@/http/middleware/Handle405Error'
 import GlueBoardController from '@/http/controllers/GlueBoardController'
 import CheckGlueBoard from '@/http/middleware/CheckGlueBoard'
+import FragmentController from '@/http/controllers/FragmentController'
+import CheckFragment from '@/http/middleware/CheckFragment'
 
 const meRouter = express.Router({ mergeParams: true })
 
 /**
  * Middleware
  */
+
 meRouter.use('*', CheckLogin.handler())
+
 meRouter.use(
   '/glueboards/:glueboard',
   CheckGlueBoard.validate(),
   RequestValidationError.handler(),
   CheckGlueBoard.handler()
+)
+
+meRouter.use(
+  '/glueboards/:glueboard/fragments/:fragment',
+  CheckFragment.validate(),
+  RequestValidationError.handler(),
+  CheckFragment.handler()
 )
 
 /**
@@ -50,11 +61,6 @@ meRouter
     RequestValidationError.handler(),
     GlueBoardController.create()
   )
-  .patch(
-    GlueBoardController.validateMove(),
-    RequestValidationError.handler(),
-    GlueBoardController.move()
-  )
   .all(Handle405Error.handler())
 
 /**
@@ -71,6 +77,36 @@ meRouter
     GlueBoardController.update()
   )
   .delete(GlueBoardController.delete())
+  .all(Handle405Error.handler())
+
+/**
+ * GET: get all fragments of the GlueBoard
+ * POST: create new fragment
+ */
+meRouter
+  .route('/glueboards/:glueboard/fragments')
+  .get(FragmentController.index())
+  .post(
+    FragmentController.validateCreate(),
+    RequestValidationError.handler(),
+    FragmentController.create()
+  )
+  .all(Handle405Error.handler())
+
+/**
+ * GET: get the fragment
+ * PATCH: partial update the fragment
+ * DELETE: delete the fragment
+ */
+meRouter
+  .route('/glueboards/:glueboard/fragments/:fragment')
+  .get(FragmentController.get())
+  .patch(
+    FragmentController.validateUpdate(),
+    RequestValidationError.handler(),
+    FragmentController.update()
+  )
+  .delete(FragmentController.delete())
   .all(Handle405Error.handler())
 
 export default meRouter

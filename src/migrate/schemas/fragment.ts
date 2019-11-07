@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose'
 
 export interface FragmentDoc extends Document {
+  id: string
   url: string
   selector: string
   xPos: number
@@ -9,6 +10,7 @@ export interface FragmentDoc extends Document {
 }
 
 const fragmentSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
   url: { type: String, required: true },
   selector: { type: String, required: true },
   xPos: { type: Number, required: true },
