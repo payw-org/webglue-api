@@ -1,10 +1,11 @@
-import { Response, SimpleHandler } from '@/http/RequestHandler'
+import { Request, Response, SimpleHandler } from '@/http/RequestHandler'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import GlueBoard from '@@/migrate/models/glue-board'
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
 import Fragment from '@@/migrate/models/fragment'
 import generate from 'nanoid/generate'
 import { checkSchema, ValidationChain } from 'express-validator'
+import { UserDoc } from '@@/migrate/schemas/user'
 
 interface IndexResponseBody {
   fragments: Array<{
@@ -174,6 +175,36 @@ export default class FragmentController {
         in: 'body',
         isNumeric: true,
         errorMessage: '`scale` must be a numeric.'
+      },
+      glueBoardID: {
+        optional: {
+          options: { checkFalsy: true }
+        },
+        in: 'body',
+        isString: true,
+        trim: true,
+        custom: {
+          // check if the GlueBoard id is valid
+          options: async (glueBoardID: string, { req }): Promise<boolean> => {
+            const request = req as Request
+            const glueBoard = (await GlueBoard.findOne(
+              { id: glueBoardID },
+              { _id: 1 }
+            ).lean()) as GlueBoardDoc
+
+            // check if exist
+            if (glueBoard) {
+              const userGlueBoardIDs = (request.user as UserDoc).glueBoards
+              // check if the GlueBoard is user's own
+              if (userGlueBoardIDs.includes(glueBoard._id)) {
+                return true
+              }
+            }
+
+            throw new Error('Invalid `glueBoardID`.')
+          }
+        },
+        errorMessage: '`glueBoard` must be a string.'
       }
     })
   }
@@ -201,6 +232,24 @@ export default class FragmentController {
       }
 
       await fragment.save()
+
+      if (req.body.glueBoardID) {
+        const newGlueBoard = (await GlueBoard.findOne({
+          id: req.body.glueBoardID
+        })) as GlueBoardDoc
+        const currGlueBoard = res.locals.glueBoard as GlueBoardDoc
+
+        // unlink from current GlueBoard
+        currGlueBoard.fragments.splice(
+          currGlueBoard.fragments.indexOf(fragment._id),
+          1
+        )
+        await currGlueBoard.save()
+
+        // link to new GlueBoard
+        newGlueBoard.fragments.push(fragment._id)
+        await newGlueBoard.save()
+      }
 
       return res.status(204).json()
     }
