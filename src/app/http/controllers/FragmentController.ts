@@ -152,4 +152,23 @@ export default class FragmentController {
       return res.status(200).json(responseBody)
     }
   }
+
+  /**
+   * Delete the fragment
+   */
+  public static delete(): SimpleHandler {
+    return async (req, res): Promise<Response> => {
+      const glueBoard = res.locals.glueBoard as GlueBoardDoc
+      const fragment = res.locals.fragment as FragmentDoc
+
+      // delete from fragment list of the current GlueBoard
+      glueBoard.fragments.splice(glueBoard.fragments.indexOf(fragment._id), 1)
+      await glueBoard.save()
+
+      // delete the fragment
+      await fragment.remove()
+
+      return res.status(204).json()
+    }
+  }
 }
