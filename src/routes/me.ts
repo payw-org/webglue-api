@@ -61,11 +61,6 @@ meRouter
     RequestValidationError.handler(),
     GlueBoardController.create()
   )
-  .patch(
-    GlueBoardController.validateMove(),
-    RequestValidationError.handler(),
-    GlueBoardController.move()
-  )
   .all(Handle405Error.handler())
 
 /**
