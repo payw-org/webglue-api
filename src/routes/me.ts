@@ -98,8 +98,14 @@ meRouter
   )
   .all(Handle405Error.handler())
 
+/**
+ * GET: get the fragment
+ * DELETE: delete the fragment
+ */
 meRouter
   .route('/glueboards/:glueboard/fragments/:fragment')
   .get(FragmentController.get())
+  .delete(FragmentController.delete())
+  .all(Handle405Error.handler())
 
 export default meRouter
