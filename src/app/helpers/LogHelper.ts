@@ -20,7 +20,7 @@ winston.addColors(logColors)
 const logOptions = {
   outFile: {
     level: 'info',
-    filename: appRoot.path + '/logs/out.log',
+    filename: `${appRoot.path}/logs/out.log`,
     handleExceptions: true,
     json: false,
     maxsize: 5242880,
@@ -29,7 +29,7 @@ const logOptions = {
   },
   errorFile: {
     level: 'error',
-    filename: appRoot.path + '/logs/error.log',
+    filename: `${appRoot.path}/logs/error.log`,
     handleExceptions: true,
     json: false,
     maxsize: 5242880,

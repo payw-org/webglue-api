@@ -18,7 +18,7 @@ export default class DBConnector {
     mongoose.connection.on('error', err => {
       LogHelper.log(
         'info',
-        'Mongoose default connection has occured ' + err + ' error'
+        `Mongoose default connection has occured ${err} error`
       )
     })
 

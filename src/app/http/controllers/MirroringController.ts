@@ -34,7 +34,7 @@ export default class MirroringController {
             // check if the url protocol is set
             // if not, add the default protocol `http`
             if (!url.startsWith('http')) {
-              url = 'http://' + url
+              url = `http://${url}`
             }
 
             // trim www
@@ -204,17 +204,19 @@ export default class MirroringController {
     // const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
 
     if (rootPathRegex.test(path)) {
-      path = 'https://' + this.url.host + path
+      path = `https://${this.url.host}${path}`
     } else if (currentPathRegex.test(path)) {
       const currentPaths = this.url.pathname.split('/').slice(0, -1)
       const assetPaths = path.split('/')
-      path =
-        'https://' + this.url.host + currentPaths.concat(assetPaths).join('/')
+      path = `https://${this.url.host}${currentPaths
+        .concat(assetPaths)
+        .join('/')}`
     } else if (parentPathRegex.test(path)) {
       const parentPaths = this.url.pathname.split('/').slice(0, -2)
       const assetPaths = path.split('/').slice(1)
-      path =
-        'https://' + this.url.host + parentPaths.concat(assetPaths).join('/')
+      path = `https://${this.url.host}${parentPaths
+        .concat(assetPaths)
+        .join('/')}`
     }
 
     return path
@@ -227,24 +229,24 @@ export default class MirroringController {
     const absolutePath = this.getAbsolutePath(extractedURL[1])
 
     if (stylePath.startsWith('url("')) {
-      stylePath = 'url("' + absolutePath + '")'
+      stylePath = `url("${absolutePath}")`
     } else if (stylePath.startsWith("url('")) {
-      stylePath = "url('" + absolutePath + "')"
+      stylePath = `url('${absolutePath}')`
     } else {
-      stylePath = 'url(' + absolutePath + ')'
+      stylePath = `url(${absolutePath})`
     }
 
     return stylePath
   }
 
   private static createMirroredHTMLFile(): void {
-    const dir = appRoot.path + '/mirrors/' + this.url.hostname
+    const dir = `${appRoot.path}/mirrors/${this.url.hostname}`
 
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir)
     }
 
-    const wstream = fs.createWriteStream(dir + '/index.html')
+    const wstream = fs.createWriteStream(`${dir}/index.html`)
     wstream.write(this.html.serialize())
     wstream.end()
   }
