@@ -8,6 +8,10 @@ const oauth2Router = express.Router({ mergeParams: true })
 /**
  * Controller
  */
+oauth2Router
+  .route('/')
+  .get(OAuth2Controller.isSignedIn())
+  .all(Handle405Error.handler())
 
 /**
  * GET: google login
