@@ -6,6 +6,7 @@ import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
+import cache from '@@/configs/cache'
 
 interface AssetElementList {
   hrefAttrElements: Element[]
@@ -66,15 +67,20 @@ export default class MirroringController {
    */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
-      this.url = new URL(req.body.url || req.query.url)
+      const inputURL = req.body.url || req.query.url
 
+      // check whether if already cached
+      const cachedHTML = cache.get(inputURL)
+      if (cachedHTML !== undefined) {
+        return res.status(200).send((cachedHTML as JSDOM).serialize())
+      }
+
+      // mirroring
       try {
+        this.url = new URL(inputURL)
         await this.requestHTML(req)
         this.fetchAssetElements()
         this.changeAssetsURL()
-        this.createMirroredHTMLFile()
-
-        return res.status(200).send(this.html.serialize())
       } catch (err) {
         return res.status(406).json({
           err: {
@@ -82,6 +88,9 @@ export default class MirroringController {
           }
         })
       }
+
+      cache.set(inputURL, this.html) // caching
+      return res.status(200).send(this.html.serialize())
     }
   }
 
