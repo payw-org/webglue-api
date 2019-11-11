@@ -3,6 +3,14 @@ import { UserDoc } from '@@/migrate/schemas/user'
 import url from 'url'
 
 export default class OAuth2Controller {
+  public static isSignedIn(): SimpleHandler {
+    return (req, res): Response => {
+      return res.status(200).json({
+        isSignedIn: req.isAuthenticated()
+      })
+    }
+  }
+
   public static logout(): SimpleHandler {
     return (req, res): Response => {
       req.logOut()

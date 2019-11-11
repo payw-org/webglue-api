@@ -18,7 +18,7 @@ passport.use(
     (accessToken, refreshToken, profile, done): void => {
       const googleId = profile.id
       const email = profile.emails[0].value
-      const nickname = email.split('@')[0] + '-' + nanoid(5)
+      const nickname = `${email.split('@')[0]}-${nanoid(5)}`
       const image = profile.photos[0].value
       const name = profile.displayName
 

@@ -124,7 +124,7 @@ export default class GlueBoardController {
 
       return res
         .status(201)
-        .location(req.originalUrl + '/' + glueBoard.id)
+        .location(`${req.originalUrl}/${glueBoard.id}`)
         .json()
     }
   }

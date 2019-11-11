@@ -1,10 +1,10 @@
-import session from 'express-session'
+import expressSession from 'express-session'
 import uuidV5 from 'uuid/v5'
 import uuidV1 from 'uuid/v1'
 import connectMongo from 'connect-mongo'
 import mongoose from 'mongoose'
 
-export default session({
+const session = expressSession({
   genid: (): string => {
     return uuidV5(uuidV1(), uuidV5.DNS)
   },
@@ -12,7 +12,7 @@ export default session({
   resave: false,
   saveUninitialized: true,
   name: process.env.SESSION_NAME,
-  store: new (connectMongo(session))({
+  store: new (connectMongo(expressSession))({
     mongooseConnection: mongoose.connection
   }),
   cookie: {
@@ -21,3 +21,5 @@ export default session({
     secure: true // use only when https
   }
 })
+
+export default session

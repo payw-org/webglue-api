@@ -1,11 +1,10 @@
 import request from 'request-promise-native'
-import fs from 'fs-extra'
 import iconv from 'iconv-lite'
 import charset from 'charset'
-import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
+import cache from '@@/configs/cache'
 
 interface AssetElementList {
   hrefAttrElements: Element[]
@@ -16,10 +15,19 @@ interface AssetElementList {
 }
 
 export default class MirroringController {
+  /**
+   * Target url
+   */
   private static url: URL
 
+  /**
+   * Target html dom
+   */
   private static html: JSDOM
 
+  /**
+   * Target asset elements
+   */
   private static assetElements = {} as AssetElementList
 
   public static validateGetHTML(): ValidationChain[] {
@@ -34,7 +42,7 @@ export default class MirroringController {
             // check if the url protocol is set
             // if not, add the default protocol `http`
             if (!url.startsWith('http')) {
-              url = 'http://' + url
+              url = `http://${url}`
             }
 
             // trim www
@@ -57,15 +65,20 @@ export default class MirroringController {
    */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
-      this.url = new URL(req.body.url || req.query.url)
+      const inputURL = req.body.url || req.query.url
 
+      // check whether if already cached
+      const cachedHTML = cache.get(inputURL)
+      if (cachedHTML !== undefined) {
+        return res.status(200).send((cachedHTML as JSDOM).serialize())
+      }
+
+      // mirroring
       try {
+        this.url = new URL(inputURL)
         await this.requestHTML(req)
         this.fetchAssetElements()
         this.changeAssetsURL()
-        this.createMirroredHTMLFile()
-
-        return res.status(200).send(this.html.serialize())
       } catch (err) {
         return res.status(406).json({
           err: {
@@ -73,11 +86,19 @@ export default class MirroringController {
           }
         })
       }
+
+      cache.set(inputURL, this.html) // caching
+      return res.status(200).send(this.html.serialize())
     }
   }
 
+  /**
+   * Request target html file to host.
+   *
+   * @param req
+   */
   private static async requestHTML(req: Request): Promise<void> {
-    let originalHTML
+    let originalHTML = ''
 
     // get html body
     await request(
@@ -111,6 +132,9 @@ export default class MirroringController {
     )
   }
 
+  /**
+   * Fetch asset elements from target html dom.
+   */
   private static fetchAssetElements(): void {
     this.assetElements.hrefAttrElements = Array.from(
       this.html.window.document.querySelectorAll('[href]')
@@ -135,6 +159,9 @@ export default class MirroringController {
     ).filter(elem => styleURLRegex.test(elem.textContent))
   }
 
+  /**
+   * Change all assets url to absolute things.
+   */
   private static changeAssetsURL(): void {
     // convert all relative path to absolute path
     for (const hrefElement of this.assetElements.hrefAttrElements) {
@@ -192,6 +219,11 @@ export default class MirroringController {
     }
   }
 
+  /**
+   * Convert all path to absolute thing.
+   *
+   * @param path
+   */
   private static getAbsolutePath(path: string): string {
     /**
      * root path: /foo/bar
@@ -204,22 +236,30 @@ export default class MirroringController {
     // const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
 
     if (rootPathRegex.test(path)) {
-      path = 'https://' + this.url.host + path
+      path = `https://${this.url.host}${path}`
     } else if (currentPathRegex.test(path)) {
       const currentPaths = this.url.pathname.split('/').slice(0, -1)
       const assetPaths = path.split('/')
-      path =
-        'https://' + this.url.host + currentPaths.concat(assetPaths).join('/')
+      path = `https://${this.url.host}${currentPaths
+        .concat(assetPaths)
+        .join('/')}`
     } else if (parentPathRegex.test(path)) {
       const parentPaths = this.url.pathname.split('/').slice(0, -2)
       const assetPaths = path.split('/').slice(1)
-      path =
-        'https://' + this.url.host + parentPaths.concat(assetPaths).join('/')
+      path = `https://${this.url.host}${parentPaths
+        .concat(assetPaths)
+        .join('/')}`
     }
 
     return path
   }
 
+  /**
+   * Handle the specific case: style path.
+   * Format: `url(path)`
+   *
+   * @param stylePath
+   */
   private static stylePathReplacer(stylePath: string): string {
     const stylePathRegex = /url\(['"]?([^'"()]+?)['"]?\)/gm
 
@@ -227,25 +267,13 @@ export default class MirroringController {
     const absolutePath = this.getAbsolutePath(extractedURL[1])
 
     if (stylePath.startsWith('url("')) {
-      stylePath = 'url("' + absolutePath + '")'
+      stylePath = `url("${absolutePath}")`
     } else if (stylePath.startsWith("url('")) {
-      stylePath = "url('" + absolutePath + "')"
+      stylePath = `url('${absolutePath}')`
     } else {
-      stylePath = 'url(' + absolutePath + ')'
+      stylePath = `url(${absolutePath})`
     }
 
     return stylePath
-  }
-
-  private static createMirroredHTMLFile(): void {
-    const dir = appRoot.path + '/mirrors/' + this.url.hostname
-
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
-    }
-
-    const wstream = fs.createWriteStream(dir + '/index.html')
-    wstream.write(this.html.serialize())
-    wstream.end()
   }
 }
