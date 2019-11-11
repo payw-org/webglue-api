@@ -16,10 +16,19 @@ interface AssetElementList {
 }
 
 export default class MirroringController {
+  /**
+   * Target url
+   */
   private static url: URL
 
+  /**
+   * Target html dom
+   */
   private static html: JSDOM
 
+  /**
+   * Target asset elements
+   */
   private static assetElements = {} as AssetElementList
 
   public static validateGetHTML(): ValidationChain[] {
@@ -76,6 +85,11 @@ export default class MirroringController {
     }
   }
 
+  /**
+   * Request target html file to host.
+   *
+   * @param req
+   */
   private static async requestHTML(req: Request): Promise<void> {
     let originalHTML
 
@@ -111,6 +125,9 @@ export default class MirroringController {
     )
   }
 
+  /**
+   * Fetch asset elements from target html dom.
+   */
   private static fetchAssetElements(): void {
     this.assetElements.hrefAttrElements = Array.from(
       this.html.window.document.querySelectorAll('[href]')
@@ -135,6 +152,9 @@ export default class MirroringController {
     ).filter(elem => styleURLRegex.test(elem.textContent))
   }
 
+  /**
+   * Change all assets url to absolute things.
+   */
   private static changeAssetsURL(): void {
     // convert all relative path to absolute path
     for (const hrefElement of this.assetElements.hrefAttrElements) {
@@ -192,6 +212,11 @@ export default class MirroringController {
     }
   }
 
+  /**
+   * Convert all path to absolute thing.
+   *
+   * @param path
+   */
   private static getAbsolutePath(path: string): string {
     /**
      * root path: /foo/bar
@@ -222,6 +247,12 @@ export default class MirroringController {
     return path
   }
 
+  /**
+   * Handle the specific case: style path.
+   * Format: `url(path)`
+   *
+   * @param stylePath
+   */
   private static stylePathReplacer(stylePath: string): string {
     const stylePathRegex = /url\(['"]?([^'"()]+?)['"]?\)/gm
 
