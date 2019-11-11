@@ -91,7 +91,7 @@ export default class MirroringController {
    * @param req
    */
   private static async requestHTML(req: Request): Promise<void> {
-    let originalHTML
+    let originalHTML = ''
 
     // get html body
     await request(
