@@ -1,8 +1,6 @@
 import request from 'request-promise-native'
-import fs from 'fs-extra'
 import iconv from 'iconv-lite'
 import charset from 'charset'
-import appRoot from 'app-root-path'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
@@ -277,17 +275,5 @@ export default class MirroringController {
     }
 
     return stylePath
-  }
-
-  private static createMirroredHTMLFile(): void {
-    const dir = `${appRoot.path}/mirrors/${this.url.hostname}`
-
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
-    }
-
-    const wstream = fs.createWriteStream(`${dir}/index.html`)
-    wstream.write(this.html.serialize())
-    wstream.end()
   }
 }
