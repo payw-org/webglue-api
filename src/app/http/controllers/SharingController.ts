@@ -23,7 +23,7 @@ interface GetResponseBody {
 
 export default class SharingController {
   /**
-   * Get the url hash of shared GlueBoard
+   * Get the url hash of the shared GlueBoard
    */
   public static getHash(): SimpleHandler {
     return (req, res): Response => {
