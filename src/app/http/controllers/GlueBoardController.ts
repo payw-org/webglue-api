@@ -13,6 +13,7 @@ interface IndexResponseBody {
       name: string
       color: string
     }
+    sharing: boolean
   }>
 }
 
@@ -22,6 +23,7 @@ interface GetResponseBody {
     name: string
     color: string
   }
+  sharing: boolean
 }
 
 export default class GlueBoardController {
@@ -51,7 +53,8 @@ export default class GlueBoardController {
       for (const glueBoard of glueBoards) {
         responseBody.glueBoards.push({
           id: glueBoard.id,
-          category: glueBoard.category
+          category: glueBoard.category,
+          sharing: glueBoard.sharing
         })
       }
 
@@ -143,7 +146,8 @@ export default class GlueBoardController {
         category: {
           name: glueBoard.category.name,
           color: glueBoard.category.color
-        }
+        },
+        sharing: glueBoard.sharing
       }
 
       return res.status(200).json(responseBody)
