@@ -10,13 +10,16 @@ export default class SharingController {
    * Get the url hash of shared GlueBoard
    */
   public static get(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return (req, res): Response => {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
 
-      // if sharing option is off, turn on.
+      // if sharing option is off, reject this request.
       if (glueBoard.sharing === false) {
-        glueBoard.sharing = true
-        await glueBoard.save()
+        return res.status(403).json({
+          err: {
+            msg: 'Sharing option for this GlueBoard is off.'
+          }
+        })
       }
 
       const responseBody: GetResponseBody = {
