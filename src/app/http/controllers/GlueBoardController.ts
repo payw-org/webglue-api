@@ -202,6 +202,12 @@ export default class GlueBoardController {
         },
         errorMessage: '`color` must be a hex color.'
       },
+      sharing: {
+        optional: true,
+        in: 'body',
+        isBoolean: true,
+        errorMessage: '`sharing` must be a boolean.'
+      },
       position: {
         optional: true,
         in: 'body',
@@ -239,6 +245,11 @@ export default class GlueBoardController {
       // update category color
       if (req.body.color) {
         glueBoard.category.color = req.body.color
+      }
+
+      // update sharing option
+      if (req.body.sharing !== undefined) {
+        glueBoard.sharing = req.body.sharing
       }
 
       await glueBoard.save()
