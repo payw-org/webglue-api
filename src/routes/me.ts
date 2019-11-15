@@ -115,7 +115,7 @@ meRouter
  */
 meRouter
   .route('/glueboards/:glueboard/sharing')
-  .get(SharingController.get())
+  .get(SharingController.getHash())
   .all(Handle405Error.handler())
 
 export default meRouter

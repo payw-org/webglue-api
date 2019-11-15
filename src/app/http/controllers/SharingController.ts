@@ -1,7 +1,7 @@
 import { Response, SimpleHandler } from '@/http/RequestHandler'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 
-interface GetResponseBody {
+interface GetHashResponseBody {
   hash: string
 }
 
@@ -9,7 +9,7 @@ export default class SharingController {
   /**
    * Get the url hash of shared GlueBoard
    */
-  public static get(): SimpleHandler {
+  public static getHash(): SimpleHandler {
     return (req, res): Response => {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
 
@@ -22,7 +22,7 @@ export default class SharingController {
         })
       }
 
-      const responseBody: GetResponseBody = {
+      const responseBody: GetHashResponseBody = {
         hash: glueBoard.id
       }
 
