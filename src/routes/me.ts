@@ -7,6 +7,7 @@ import GlueBoardController from '@/http/controllers/GlueBoardController'
 import CheckGlueBoard from '@/http/middleware/CheckGlueBoard'
 import FragmentController from '@/http/controllers/FragmentController'
 import CheckFragment from '@/http/middleware/CheckFragment'
+import SharingController from '@/http/controllers/SharingController'
 
 const meRouter = express.Router({ mergeParams: true })
 
@@ -107,6 +108,14 @@ meRouter
     FragmentController.update()
   )
   .delete(FragmentController.delete())
+  .all(Handle405Error.handler())
+
+/**
+ * GET: get the url hash of shared GlueBoard
+ */
+meRouter
+  .route('/glueboards/:glueboard/sharing')
+  .get(SharingController.getHash())
   .all(Handle405Error.handler())
 
 export default meRouter

@@ -13,6 +13,7 @@ interface IndexResponseBody {
       name: string
       color: string
     }
+    sharing: boolean
   }>
 }
 
@@ -22,6 +23,7 @@ interface GetResponseBody {
     name: string
     color: string
   }
+  sharing: boolean
 }
 
 export default class GlueBoardController {
@@ -51,7 +53,8 @@ export default class GlueBoardController {
       for (const glueBoard of glueBoards) {
         responseBody.glueBoards.push({
           id: glueBoard.id,
-          category: glueBoard.category
+          category: glueBoard.category,
+          sharing: glueBoard.sharing
         })
       }
 
@@ -143,7 +146,8 @@ export default class GlueBoardController {
         category: {
           name: glueBoard.category.name,
           color: glueBoard.category.color
-        }
+        },
+        sharing: glueBoard.sharing
       }
 
       return res.status(200).json(responseBody)
@@ -198,6 +202,12 @@ export default class GlueBoardController {
         },
         errorMessage: '`color` must be a hex color.'
       },
+      sharing: {
+        optional: true,
+        in: 'body',
+        isBoolean: true,
+        errorMessage: '`sharing` must be a boolean.'
+      },
       position: {
         optional: true,
         in: 'body',
@@ -235,6 +245,11 @@ export default class GlueBoardController {
       // update category color
       if (req.body.color) {
         glueBoard.category.color = req.body.color
+      }
+
+      // update sharing option
+      if (req.body.sharing !== undefined) {
+        glueBoard.sharing = req.body.sharing
       }
 
       await glueBoard.save()
