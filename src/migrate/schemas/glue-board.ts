@@ -19,6 +19,7 @@ const glueBoardSchema = new mongoose.Schema({
   fragments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fragment' }]
 })
 
+// set composite unique key
 glueBoardSchema.index({ user: 1, 'category.name': 1 }, { unique: true })
 
 export default glueBoardSchema
