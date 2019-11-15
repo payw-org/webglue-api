@@ -1,11 +1,24 @@
 import { Response, NextHandler } from '@/http/RequestHandler'
 import GlueBoard from '@@/migrate/models/glue-board'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
+import { checkSchema, ValidationChain } from 'express-validator'
 
 export default class CheckSharing {
+  public static validate(): ValidationChain[] {
+    return checkSchema({
+      hash: {
+        exists: true,
+        in: 'params',
+        isString: true,
+        trim: true,
+        errorMessage: '`hash` must be a string.'
+      }
+    })
+  }
+
   public static handler(): NextHandler {
     return async (req, res, next): Promise<Response | void> => {
-      const glueBoardID = req.params.glueboard
+      const glueBoardID = req.params.hash
       const glueBoard = (await GlueBoard.findOne({
         id: glueBoardID
       })) as GlueBoardDoc
