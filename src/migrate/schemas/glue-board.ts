@@ -7,6 +7,7 @@ export interface GlueBoardDoc extends Document {
   user: string | UserDoc
   id: string
   category: CategoryDoc
+  sharing: boolean
   fragments?: Array<string | FragmentDoc>
 }
 
@@ -14,6 +15,7 @@ const glueBoardSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   id: { type: String, required: true, unique: true },
   category: { type: categorySchema, required: true },
+  sharing: { type: Boolean, required: true, default: false },
   fragments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fragment' }]
 })
 
