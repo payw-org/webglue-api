@@ -1,8 +1,24 @@
 import { Response, SimpleHandler } from '@/http/RequestHandler'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
+import GlueBoard from '@@/migrate/models/glue-board'
+import { FragmentDoc } from '@@/migrate/schemas/fragment'
 
 interface GetHashResponseBody {
   hash: string
+}
+
+interface GetResponseBody {
+  category: {
+    name: string
+    color: string
+  }
+  fragments: Array<{
+    url: string
+    selector: string
+    xPos: number
+    yPos: number
+    scale: number
+  }>
 }
 
 export default class SharingController {
@@ -24,6 +40,44 @@ export default class SharingController {
 
       const responseBody: GetHashResponseBody = {
         hash: glueBoard.id
+      }
+
+      return res.status(200).json(responseBody)
+    }
+  }
+
+  /**
+   * Access to the shared GlueBoard
+   */
+  public static get(): SimpleHandler {
+    return async (req, res): Promise<Response> => {
+      const glueBoard = (await GlueBoard.findById(res.locals.glueBoard._id, {
+        category: 1,
+        fragments: 1
+      })
+        .lean()
+        .populate({
+          path: 'fragments',
+          select: '-_id -id'
+        })) as GlueBoardDoc
+
+      const responseBody: GetResponseBody = {
+        category: {
+          name: glueBoard.category.name,
+          color: glueBoard.category.color
+        },
+        fragments: []
+      }
+
+      // compose response body
+      for (const fragment of glueBoard.fragments as FragmentDoc[]) {
+        responseBody.fragments.push({
+          url: fragment.url,
+          selector: fragment.selector,
+          xPos: fragment.xPos,
+          yPos: fragment.yPos,
+          scale: fragment.scale
+        })
       }
 
       return res.status(200).json(responseBody)

@@ -5,6 +5,8 @@ import mirroringRouter from '@@/routes/mirroring'
 import CheckGlueBoard from '@/http/middleware/CheckGlueBoard'
 import RequestValidationError from '@/http/middleware/RequestValidationError'
 import CheckSharing from '@/http/middleware/CheckSharing'
+import SharingController from '@/http/controllers/SharingController'
+import Handle405Error from '@/http/middleware/Handle405Error'
 
 const mainRouter = express.Router()
 
@@ -26,5 +28,17 @@ mainRouter.use(
 mainRouter.use('/oauth2', oauth2Router)
 mainRouter.use('/me', meRouter)
 mainRouter.use('/mirroring', mirroringRouter)
+
+/**
+ * Controller
+ */
+
+/**
+ * GET: access to the shared GlueBoard
+ */
+mainRouter
+  .route('/sharing/:glueboard')
+  .get(SharingController.get())
+  .all(Handle405Error.handler())
 
 export default mainRouter
