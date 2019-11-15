@@ -108,8 +108,11 @@ export default class GlueBoardController {
    */
   public static create(): SimpleHandler {
     return async (req, res): Promise<Response> => {
+      const user = req.user as UserDoc
+
       // create a GlueBoard
       const glueBoard = (await GlueBoard.create({
+        user: user._id,
         id: generate('0123456789abcdefghijklmnopqrstuvwxyz', 14), // url id
         category: {
           name: req.body.name,
@@ -118,7 +121,6 @@ export default class GlueBoardController {
       })) as GlueBoardDoc
 
       // Add new GlueBoard to user
-      const user = req.user as UserDoc
       user.glueBoards.push(glueBoard._id)
       await user.save()
 
