@@ -2,7 +2,11 @@
   <img src="https://user-images.githubusercontent.com/37792049/69007828-816ea080-0986-11ea-947b-dca62c27bce0.png" width="300" />
 </p>
 
-<p align="center"><b>webglue api</b> is a robust RESTful API for webglue.me</p>
+<p align="center">
+  <b>webglue API</b>
+  <br />
+  is a robust RESTful API for webglue.me
+</p>
 
 <p align="center">
   <img src="https://img.shields.io/github/license/paywteam/webglue-api" />
@@ -16,7 +20,7 @@
 
 ## How to Use
 
-https://webglue.me
+[See our API document](https://documenter.getpostman.com/view/7378097/SVtVVodM)
 
 ## Build Instructions
 
