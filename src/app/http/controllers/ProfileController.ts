@@ -45,7 +45,7 @@ export default class ProfileController {
           options: async (nickname: string, { req }): Promise<boolean> => {
             const duplicateUser = (await User.findOne(
               {
-                nickname: { $regex: new RegExp(nickname, 'i') } // compare case insensitive
+                nickname: { $regex: new RegExp('^' + nickname + '$', 'i') } // compare case insensitive
               },
               { _id: 1 }
             ).lean()) as UserDoc

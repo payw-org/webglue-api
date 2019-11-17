@@ -78,7 +78,7 @@ export default class GlueBoardController {
 
             const exists = await GlueBoard.exists({
               _id: { $in: glueBoardIDs },
-              'category.name': { $regex: new RegExp(`/^${name}$/`, 'i') } // compare case insensitive
+              'category.name': { $regex: new RegExp('^' + name + '$', 'i') } // compare case insensitive
             })
 
             if (exists) {
@@ -173,7 +173,7 @@ export default class GlueBoardController {
             const duplicateGlueBoard = (await GlueBoard.findOne(
               {
                 _id: { $in: glueBoardIDs },
-                'category.name': { $regex: new RegExp(`/^${name}$/`, 'i') }
+                'category.name': { $regex: new RegExp('^' + name + '$', 'i') }
               },
               { id: 1 }
             ).lean()) as GlueBoardDoc
