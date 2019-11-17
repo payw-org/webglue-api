@@ -26,6 +26,10 @@ interface GetResponseBody {
   sharing: boolean
 }
 
+interface CreateResponseBody {
+  createdID: string
+}
+
 export default class GlueBoardController {
   /**
    * Get user's all GlueBoards
@@ -127,10 +131,11 @@ export default class GlueBoardController {
       user.glueBoards.push(glueBoard._id)
       await user.save()
 
-      return res
-        .status(201)
-        .location(`${req.originalUrl}/${glueBoard.id}`)
-        .json()
+      const responseBody: CreateResponseBody = {
+        createdID: glueBoard.id
+      }
+
+      return res.status(201).json(responseBody)
     }
   }
 

@@ -27,6 +27,10 @@ interface GetResponseBody {
   scale: number
 }
 
+interface CreateResponseBody {
+  createdID: string
+}
+
 export default class FragmentController {
   /**
    * Get all fragments of the GlueBoard.
@@ -129,10 +133,11 @@ export default class FragmentController {
       glueBoard.fragments.push(fragment._id)
       await glueBoard.save()
 
-      return res
-        .status(201)
-        .location(`${req.originalUrl}/${fragment.id}`)
-        .json()
+      const responseBody: CreateResponseBody = {
+        createdID: fragment.id
+      }
+
+      return res.status(201).json(responseBody)
     }
   }
 
