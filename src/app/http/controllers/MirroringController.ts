@@ -68,9 +68,9 @@ export default class MirroringController {
         )
 
         // check whether if already cached
-        const cachedHTML = cache.get(this.url.href)
-        if (cachedHTML !== undefined) {
-          return res.status(200).send((cachedHTML as JSDOM).serialize())
+        if (cache.has(this.url.href)) {
+          const cachedHTML = cache.get(this.url.href) as JSDOM
+          return res.status(200).send(cachedHTML.serialize())
         }
 
         // mirroring
