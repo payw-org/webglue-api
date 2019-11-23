@@ -145,7 +145,6 @@ export default class MirroringController {
       },
       (error, res, body) => {
         if (!error) {
-          this.url.href = res.request.uri.href // update to actual href
           originalHTML = iconv.decode(body, charset(res.headers, body)) // decode the html according to its charset
         } else {
           throw error
