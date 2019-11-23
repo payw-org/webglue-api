@@ -6,11 +6,6 @@ import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import cache from '@@/configs/cache'
 
-interface GetHTMLResponseBody {
-  originalURL: string
-  html: string
-}
-
 interface AssetElementList {
   hrefAttrElements: Element[]
   srcAttrElements: Element[]
@@ -72,17 +67,11 @@ export default class MirroringController {
         this.url = new URL(sanitizedURLBase + '?' + originalURLQuery)
       }
 
-      let responseBody: GetHTMLResponseBody
-
       // check whether if already cached
       const cachedHTML = cache.get(this.url.href)
       if (cachedHTML !== undefined) {
-        responseBody = {
-          originalURL: this.url.href,
-          html: (cachedHTML as JSDOM).serialize()
+          return res.status(200).send((cachedHTML as JSDOM).serialize())
         }
-        return res.status(200).json(responseBody)
-      }
 
       // mirroring
       try {
@@ -98,14 +87,13 @@ export default class MirroringController {
       }
 
       cache.set(this.url.href, this.html) // caching
+      return res.status(200).send(this.html.serialize())
+    }
+  }
 
-      responseBody = {
-        originalURL: this.url.href,
-        html: this.html.serialize()
+
       }
 
-      return res.status(200).json(responseBody)
-    }
   }
 
   /**
