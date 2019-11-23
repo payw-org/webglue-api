@@ -6,11 +6,6 @@ import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import cache from '@@/configs/cache'
 
-interface GetHTMLResponseBody {
-  originalURL: string
-  html: string
-}
-
 interface AssetElementList {
   hrefAttrElements: Element[]
   srcAttrElements: Element[]
@@ -63,29 +58,22 @@ export default class MirroringController {
    */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
-      // parse target url in query string
-      const sanitizedURLBase = req.query.url.split('?')[0]
-      const originalURLQuery = req.originalUrl.split('?url=')[1].split('?')[1]
-      if (originalURLQuery === undefined) {
-        this.url = new URL(sanitizedURLBase)
-      } else {
-        this.url = new URL(sanitizedURLBase + '?' + originalURLQuery)
-      }
-
-      let responseBody: GetHTMLResponseBody
-
-      // check whether if already cached
-      const cachedHTML = cache.get(this.url.href)
-      if (cachedHTML !== undefined) {
-        responseBody = {
-          originalURL: this.url.href,
-          html: (cachedHTML as JSDOM).serialize()
-        }
-        return res.status(200).json(responseBody)
-      }
-
-      // mirroring
       try {
+        // uniform request target url
+        this.url = new URL(
+          await this.uniformalizeTargetUrl(
+            req.query.url,
+            req.originalUrl.split('?url=')[1]
+          )
+        )
+
+        // check whether if already cached
+        const cachedHTML = cache.get(this.url.href)
+        if (cachedHTML !== undefined) {
+          return res.status(200).send((cachedHTML as JSDOM).serialize())
+        }
+
+        // mirroring
         await this.requestHTML(req)
         this.fetchAssetElements()
         this.changeAssetsURL()
@@ -98,14 +86,41 @@ export default class MirroringController {
       }
 
       cache.set(this.url.href, this.html) // caching
-
-      responseBody = {
-        originalURL: this.url.href,
-        html: this.html.serialize()
-      }
-
-      return res.status(200).json(responseBody)
+      return res.status(200).send(this.html.serialize())
     }
+  }
+
+  public static async uniformalizeTargetUrl(
+    sanitizedUrl: string,
+    originalUrl: string
+  ): Promise<string> {
+    const baseUrl = sanitizedUrl.split('?')[0]
+    const query = originalUrl.split('?')[1]
+
+    // parse target url
+    let uniformUrl
+    if (query === undefined) {
+      uniformUrl = baseUrl
+    } else {
+      uniformUrl = baseUrl + '?' + query
+    }
+
+    // check url by response of head request
+    await request(
+      {
+        url: uniformUrl,
+        method: 'head'
+      },
+      (error, response) => {
+        if (!error) {
+          uniformUrl = response.request.uri.href // update to actual url
+        } else {
+          throw error
+        }
+      }
+    )
+
+    return uniformUrl
   }
 
   /**
@@ -130,7 +145,6 @@ export default class MirroringController {
       },
       (error, res, body) => {
         if (!error) {
-          this.url.href = res.request.uri.href // update to actual href
           originalHTML = iconv.decode(body, charset(res.headers, body)) // decode the html according to its charset
         } else {
           throw error
