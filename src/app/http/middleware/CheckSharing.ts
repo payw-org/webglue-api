@@ -23,6 +23,7 @@ export default class CheckSharing {
         id: glueBoardID
       })) as GlueBoardDoc
 
+      // cannot find the GlueBoard which is corresponding to hash
       if (!glueBoard) {
         return res.status(404).json({
           err: {
@@ -31,6 +32,7 @@ export default class CheckSharing {
         })
       }
 
+      // sharing option for this GlueBoard is off
       if (!glueBoard.sharing) {
         return res.status(403).json({
           err: {
