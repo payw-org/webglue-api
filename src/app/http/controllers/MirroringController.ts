@@ -39,7 +39,7 @@ export default class MirroringController {
     return checkSchema({
       url: {
         exists: true,
-        in: ['body', 'query'],
+        in: 'query',
         isURL: true,
         trim: true,
         customSanitizer: {
@@ -63,19 +63,13 @@ export default class MirroringController {
    */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
-      const testMode = req.query.url ? 1 : 0
-
-      if (testMode) {
-        // parse target url in query string
-        const sanitizedURLBase = req.query.url.split('?')[0]
-        const originalURLQuery = req.originalUrl.split('?url=')[1].split('?')[1]
-        if (originalURLQuery === undefined) {
-          this.url = new URL(sanitizedURLBase)
-        } else {
-          this.url = new URL(sanitizedURLBase + '?' + originalURLQuery)
-        }
+      // parse target url in query string
+      const sanitizedURLBase = req.query.url.split('?')[0]
+      const originalURLQuery = req.originalUrl.split('?url=')[1].split('?')[1]
+      if (originalURLQuery === undefined) {
+        this.url = new URL(sanitizedURLBase)
       } else {
-        this.url = new URL(req.body.url)
+        this.url = new URL(sanitizedURLBase + '?' + originalURLQuery)
       }
 
       let responseBody: GetHTMLResponseBody
@@ -83,15 +77,11 @@ export default class MirroringController {
       // check whether if already cached
       const cachedHTML = cache.get(this.url.href)
       if (cachedHTML !== undefined) {
-        if (testMode) {
-          return res.status(200).send((cachedHTML as JSDOM).serialize())
-        } else {
-          responseBody = {
-            originalURL: this.url.href,
-            html: (cachedHTML as JSDOM).serialize()
-          }
-          return res.status(200).json(responseBody)
+        responseBody = {
+          originalURL: this.url.href,
+          html: (cachedHTML as JSDOM).serialize()
         }
+        return res.status(200).json(responseBody)
       }
 
       // mirroring
@@ -109,16 +99,12 @@ export default class MirroringController {
 
       cache.set(this.url.href, this.html) // caching
 
-      if (testMode) {
-        return res.status(200).send((cachedHTML as JSDOM).serialize())
-      } else {
-        responseBody = {
-          originalURL: this.url.href,
-          html: this.html.serialize()
-        }
-
-        return res.status(200).json(responseBody)
+      responseBody = {
+        originalURL: this.url.href,
+        html: this.html.serialize()
       }
+
+      return res.status(200).json(responseBody)
     }
   }
 
