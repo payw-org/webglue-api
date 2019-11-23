@@ -6,6 +6,11 @@ import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import cache from '@@/configs/cache'
 
+interface GetHTMLResponseBody {
+  originalURL: string
+  html: string
+}
+
 interface AssetElementList {
   hrefAttrElements: Element[]
   srcAttrElements: Element[]
@@ -58,17 +63,39 @@ export default class MirroringController {
    */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
-      const inputURL = req.body.url || req.query.url
+      const testMode = req.query.url ? 1 : 0
+
+      if (testMode) {
+        // parse target url in query string
+        const sanitizedURLBase = req.query.url.split('?')[0]
+        const originalURLQuery = req.originalUrl.split('?url=')[1].split('?')[1]
+        if (originalURLQuery === undefined) {
+          this.url = new URL(sanitizedURLBase)
+        } else {
+          this.url = new URL(sanitizedURLBase + '?' + originalURLQuery)
+        }
+      } else {
+        this.url = new URL(req.body.url)
+      }
+
+      let responseBody: GetHTMLResponseBody
 
       // check whether if already cached
-      const cachedHTML = cache.get(inputURL)
+      const cachedHTML = cache.get(this.url.href)
       if (cachedHTML !== undefined) {
-        return res.status(200).send((cachedHTML as JSDOM).serialize())
+        if (testMode) {
+          return res.status(200).send((cachedHTML as JSDOM).serialize())
+        } else {
+          responseBody = {
+            originalURL: this.url.href,
+            html: (cachedHTML as JSDOM).serialize()
+          }
+          return res.status(200).json(responseBody)
+        }
       }
 
       // mirroring
       try {
-        this.url = new URL(inputURL)
         await this.requestHTML(req)
         this.fetchAssetElements()
         this.changeAssetsURL()
@@ -80,8 +107,18 @@ export default class MirroringController {
         })
       }
 
-      cache.set(inputURL, this.html) // caching
-      return res.status(200).send(this.html.serialize())
+      cache.set(this.url.href, this.html) // caching
+
+      if (testMode) {
+        return res.status(200).send((cachedHTML as JSDOM).serialize())
+      } else {
+        responseBody = {
+          originalURL: this.url.href,
+          html: this.html.serialize()
+        }
+
+        return res.status(200).json(responseBody)
+      }
     }
   }
 
