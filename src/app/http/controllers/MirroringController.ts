@@ -45,13 +45,6 @@ export default class MirroringController {
               url = `http://${url}`
             }
 
-            // trim www
-            const urlObj = new URL(url)
-            if (urlObj.hostname.startsWith('www.')) {
-              urlObj.hostname = urlObj.hostname.replace('www.', '')
-              url = urlObj.href
-            }
-
             return url
           }
         },
