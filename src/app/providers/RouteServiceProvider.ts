@@ -14,12 +14,8 @@ export default class RouteServiceProvider {
    * Basic middleware list which is globally applied to router.
    */
   private static basicMiddleware = [
-    helmet.frameguard({
-      action: 'allow-from',
-      domain: process.env.DOMAIN
-    }),
     cors({
-      origin: process.env.DOMAIN,
+      origin: process.env.CORS_ALLOWED_LIST.split(' '),
       credentials: true
     }),
     bodyParser.json(),
