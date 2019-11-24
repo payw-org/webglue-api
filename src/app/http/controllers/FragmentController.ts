@@ -211,10 +211,10 @@ export default class FragmentController {
           // check if the GlueBoard id is valid
           options: async (glueBoardID: string, { req }): Promise<boolean> => {
             const request = req as Request
-            const glueBoard = (await GlueBoard.findOne(
+            const glueBoard = await GlueBoard.findOne(
               { id: glueBoardID },
               { _id: 1 }
-            ).lean()) as GlueBoardDoc
+            ).lean()
 
             // check if exist
             if (glueBoard) {
