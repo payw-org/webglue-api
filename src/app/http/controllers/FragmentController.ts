@@ -3,9 +3,9 @@ import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import GlueBoard from '@@/migrate/models/glue-board'
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
 import Fragment from '@@/migrate/models/fragment'
-import generate from 'nanoid/generate'
 import { checkSchema, ValidationChain } from 'express-validator'
 import { UserDoc } from '@@/migrate/schemas/user'
+import UniformURL from '@/modules/UniformURL'
 import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {
@@ -77,6 +77,24 @@ export default class FragmentController {
         in: 'body',
         isURL: true,
         trim: true,
+        customSanitizer: {
+          options: async (url: string): Promise<string> => {
+            // check if the url protocol is set
+            // if not, add the default protocol `http`
+            if (!url.startsWith('http')) {
+              url = `http://${url}`
+            }
+
+            // check if the url is invalid and uniform it
+            try {
+              url = await UniformURL.uniform(url)
+            } catch (error) {
+              throw new Error('Invalid target url')
+            }
+
+            return url
+          }
+        },
         errorMessage: '`url` must be a url format.'
       },
       selector: {
@@ -116,8 +134,8 @@ export default class FragmentController {
     return async (req, res): Promise<Response> => {
       // create a fragment
       const fragment = (await Fragment.create({
-        url: req.body.url,
         id: UIDGenerator.alphaNumericUID(16), // url id
+        url: await req.body.url,
         selector: req.body.selector,
         xPos: req.body.xPos,
         yPos: req.body.yPos
