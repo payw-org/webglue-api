@@ -44,7 +44,7 @@ export default class GlueBoardController {
         .lean()
         .populate({
           path: 'glueBoards',
-          select: '-_id -category._id'
+          select: '-_id'
         })) as UserDoc
 
       const glueBoards = user.glueBoards as GlueBoardDoc[]
@@ -148,10 +148,7 @@ export default class GlueBoardController {
 
       const responseBody: GetResponseBody = {
         id: glueBoard.id,
-        category: {
-          name: glueBoard.category.name,
-          color: glueBoard.category.color
-        },
+        category: glueBoard.category,
         sharing: glueBoard.sharing
       }
 
