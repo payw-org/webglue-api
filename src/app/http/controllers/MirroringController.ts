@@ -5,6 +5,7 @@ import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import UniformURL from '@/modules/UniformURL'
+import MirroringMemory from '@/modules/MirroringMemory'
 
 interface AssetElementList {
   hrefAttrElements: Element[]
@@ -73,12 +74,14 @@ export default class MirroringController {
         )
       )
 
-        // check whether if already cached
-        if (cache.has(this.url.href)) {
-          const cachedHTML = cache.get(this.url.href) as JSDOM
-          return res.status(200).send(cachedHTML.serialize())
-        }
+      // check whether if already cached in memory
+      if (MirroringMemory.Instance.isCached(this.url.href)) {
+        return res
+          .status(200)
+          .send(MirroringMemory.Instance.getSerializedHTML(this.url.href))
+      }
 
+      try {
         // mirroring
         await this.requestHTML(req)
         this.fetchAssetElements()
@@ -91,7 +94,7 @@ export default class MirroringController {
         })
       }
 
-      cache.set(this.url.href, this.html) // caching
+      MirroringMemory.Instance.caching(this.url.href, this.html)
       return res.status(200).send(this.html.serialize())
     }
   }
