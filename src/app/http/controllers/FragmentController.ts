@@ -261,7 +261,7 @@ export default class FragmentController {
       await fragment.save()
 
       if (req.body.transferGlueBoardID) {
-        const newGlueBoard = (await GlueBoard.findOne({
+        const transferGlueBoard = (await GlueBoard.findOne({
           id: req.body.transferGlueBoardID
         })) as GlueBoardDoc
         const currGlueBoard = res.locals.glueBoard as GlueBoardDoc
@@ -274,8 +274,8 @@ export default class FragmentController {
         await currGlueBoard.save()
 
         // link to new GlueBoard
-        newGlueBoard.fragments.push(fragment._id)
-        await newGlueBoard.save()
+        transferGlueBoard.fragments.push(fragment._id)
+        await transferGlueBoard.save()
       }
 
       return res.status(204).json()
