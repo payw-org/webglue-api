@@ -1,4 +1,4 @@
-import { Response, ErrorHandler } from '@/http/RequestHandler'
+import { WGResponse, ErrorHandler } from '@/http/RequestHandler'
 import LogHelper from '@/modules/LogHelper'
 
 export default class HandleSyntaxError {
@@ -6,7 +6,7 @@ export default class HandleSyntaxError {
    * Handle request syntax error.
    */
   public static handler(): ErrorHandler {
-    return (err, req, res, next): Response | void => {
+    return (err, req, res, next): WGResponse | void => {
       if (err instanceof SyntaxError) {
         LogHelper.Instance.log('error', err.stack)
 

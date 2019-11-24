@@ -1,4 +1,4 @@
-import { NextHandler, Response } from '@/http/RequestHandler'
+import { NextHandler, WGResponse } from '@/http/RequestHandler'
 import { validationResult } from 'express-validator'
 
 export default class RequestValidationError {
@@ -6,7 +6,7 @@ export default class RequestValidationError {
    * Handle http request validation error.
    */
   public static handler(): NextHandler {
-    return (req, res, next): Response | void => {
+    return (req, res, next): WGResponse | void => {
       const errors = validationResult(req)
 
       if (!errors.isEmpty()) {

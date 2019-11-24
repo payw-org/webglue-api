@@ -1,10 +1,9 @@
-import { Request, Response, SimpleHandler } from '@/http/RequestHandler'
+import { WGRequest, WGResponse, SimpleHandler } from '@/http/RequestHandler'
 import { UserDoc } from '@@/migrate/schemas/user'
 import User from '@@/migrate/models/user'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import { checkSchema, ValidationChain } from 'express-validator'
 import GlueBoard from '@@/migrate/models/glue-board'
-import generate from 'nanoid/generate'
 import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {
@@ -36,7 +35,7 @@ export default class GlueBoardController {
    * Get user's all GlueBoards
    */
   public static index(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       // populate GlueBoards
       const user = (await User.findById((req.user as UserDoc)._id, {
         _id: 0,
@@ -79,7 +78,7 @@ export default class GlueBoardController {
         custom: {
           // check if category name is already in use
           options: async (name: string, { req }): Promise<boolean> => {
-            const glueBoardIDs = ((req as Request).user as UserDoc).glueBoards
+            const glueBoardIDs = ((req as WGRequest).user as UserDoc).glueBoards
 
             const exists = await GlueBoard.exists({
               _id: { $in: glueBoardIDs },
@@ -115,7 +114,7 @@ export default class GlueBoardController {
    * Create new GlueBoard
    */
   public static create(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const user = req.user as UserDoc
 
       // create a GlueBoard
@@ -144,7 +143,7 @@ export default class GlueBoardController {
    * Get the GlueBoard
    */
   public static get(): SimpleHandler {
-    return (req, res): Response => {
+    return (req, res): WGResponse => {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
 
       const responseBody: GetResponseBody = {
@@ -173,16 +172,16 @@ export default class GlueBoardController {
           // check if category name is already in use
           // if update to same name, pass to handler
           options: async (name: string, { req }): Promise<boolean> => {
-            const request = req as Request
+            const request = req as WGRequest
             const glueBoardIDs = (request.user as UserDoc).glueBoards
 
-            const duplicateGlueBoard = (await GlueBoard.findOne(
+            const duplicateGlueBoard = await GlueBoard.findOne(
               {
                 _id: { $in: glueBoardIDs },
                 'category.name': { $regex: new RegExp('^' + name + '$', 'i') }
               },
               { id: 1 }
-            ).lean()) as GlueBoardDoc
+            ).lean()
 
             if (duplicateGlueBoard) {
               // if name is already in use from other GlueBoard
@@ -221,8 +220,8 @@ export default class GlueBoardController {
         custom: {
           // check if the new position is valid
           options: (position: number, { req }): boolean => {
-            const glueBoardCount = ((req as Request).user as UserDoc).glueBoards
-              .length
+            const glueBoardCount = ((req as WGRequest).user as UserDoc)
+              .glueBoards.length
 
             if (position < 0 || position >= glueBoardCount) {
               throw new Error('Invalid scope for `position`')
@@ -240,7 +239,7 @@ export default class GlueBoardController {
    * Partial update the GlueBoard.
    */
   public static update(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
 
       // update category name
@@ -280,7 +279,7 @@ export default class GlueBoardController {
    * Delete the GlueBoard
    */
   public static delete(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const user = req.user as UserDoc
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
 

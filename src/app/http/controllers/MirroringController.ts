@@ -2,7 +2,7 @@ import request from 'request-promise-native'
 import iconv from 'iconv-lite'
 import charset from 'charset'
 import { JSDOM } from 'jsdom'
-import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
+import { SimpleHandler, WGRequest, WGResponse } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import UniformURL from '@/modules/webglue-api/UniformURL'
 import MirroringMemory from '@/modules/webglue-api/MirroringMemory'
@@ -65,7 +65,7 @@ export default class MirroringController {
    * Get mirrored html
    */
   public static getHTML(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       // uniform target url
       this.url = new URL(
         this.parseTargetURL(
@@ -121,7 +121,7 @@ export default class MirroringController {
    *
    * @param req
    */
-  private static async requestHTML(req: Request): Promise<void> {
+  private static async requestHTML(req: WGRequest): Promise<void> {
     let originalHTML = ''
 
     // get html body

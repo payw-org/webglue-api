@@ -1,4 +1,4 @@
-import { Request, Response, SimpleHandler } from '@/http/RequestHandler'
+import { WGRequest, WGResponse, SimpleHandler } from '@/http/RequestHandler'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import GlueBoard from '@@/migrate/models/glue-board'
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
@@ -37,7 +37,7 @@ export default class FragmentController {
    * Get all fragments of the GlueBoard.
    */
   public static index(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       // populate fragments
       const glueBoard = (await GlueBoard.findById(res.locals.glueBoard._id, {
         _id: 0,
@@ -131,7 +131,7 @@ export default class FragmentController {
    * Create new fragment.
    */
   public static create(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       // create a fragment
       const fragment = (await Fragment.create({
         id: UIDGenerator.alphaNumericUID(16), // url id
@@ -164,7 +164,7 @@ export default class FragmentController {
    * Get the fragment
    */
   public static get(): SimpleHandler {
-    return (req, res): Response => {
+    return (req, res): WGResponse => {
       const fragment = res.locals.fragment as FragmentDoc
 
       const responseBody: GetResponseBody = {
@@ -213,7 +213,7 @@ export default class FragmentController {
             transferGlueBoardID: string,
             { req }
           ): Promise<boolean> => {
-            const request = req as Request
+            const request = req as WGRequest
             const glueBoard = await GlueBoard.findOne(
               { id: transferGlueBoardID },
               { _id: 1 }
@@ -240,7 +240,7 @@ export default class FragmentController {
    * Partial update the fragment
    */
   public static update(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const fragment = res.locals.fragment as FragmentDoc
 
       // update x position
@@ -286,7 +286,7 @@ export default class FragmentController {
    * Delete the fragment
    */
   public static delete(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
       const fragment = res.locals.fragment as FragmentDoc
 
