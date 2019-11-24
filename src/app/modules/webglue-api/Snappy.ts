@@ -44,7 +44,11 @@ export default class Snappy {
         url: url,
         encoding: null,
         followOriginalHttpMethod: true,
-        headers: headers
+        headers: {
+          'User-Agent': headers.userAgent,
+          Accept: headers.accept,
+          'Accept-Language': headers.acceptLanguage
+        }
       },
       (error, response, body) => {
         if (!error) {
