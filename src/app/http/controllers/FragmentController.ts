@@ -5,7 +5,7 @@ import { FragmentDoc } from '@@/migrate/schemas/fragment'
 import Fragment from '@@/migrate/models/fragment'
 import { checkSchema, ValidationChain } from 'express-validator'
 import { UserDoc } from '@@/migrate/schemas/user'
-import UniformURL from '@/modules/UniformURL'
+import UniformURL from '@/modules/webglue-api/UniformURL'
 import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {

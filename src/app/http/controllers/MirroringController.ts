@@ -4,8 +4,8 @@ import charset from 'charset'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
-import UniformURL from '@/modules/UniformURL'
-import MirroringMemory from '@/modules/MirroringMemory'
+import UniformURL from '@/modules/webglue-api/UniformURL'
+import MirroringMemory from '@/modules/webglue-api/MirroringMemory'
 
 interface AssetElementList {
   hrefAttrElements: Element[]
