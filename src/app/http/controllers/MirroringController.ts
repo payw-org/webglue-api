@@ -1,8 +1,9 @@
 import request from 'request-promise-native'
+import { IncomingHttpHeaders } from 'http'
 import iconv from 'iconv-lite'
 import charset from 'charset'
 import { JSDOM } from 'jsdom'
-import { SimpleHandler, WGRequest, WGResponse } from '@/http/RequestHandler'
+import { SimpleHandler, WGResponse } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import UniformURL from '@/modules/webglue-api/UniformURL'
 import MirroringMemory from '@/modules/webglue-api/MirroringMemory'
@@ -16,21 +17,6 @@ interface AssetElementList {
 }
 
 export default class MirroringController {
-  /**
-   * Target url
-   */
-  private static url: URL
-
-  /**
-   * Target html dom
-   */
-  private static html: JSDOM
-
-  /**
-   * Target asset elements
-   */
-  private static assetElements = {} as AssetElementList
-
   public static validateGetHTML(): ValidationChain[] {
     return checkSchema({
       url: {
@@ -67,7 +53,7 @@ export default class MirroringController {
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<WGResponse> => {
       // uniform target url
-      this.url = new URL(
+      const targetURL = new URL(
         this.parseTargetURL(
           await req.query.url,
           req.originalUrl.split('?url=')[1]
@@ -75,17 +61,21 @@ export default class MirroringController {
       )
 
       // check whether if already cached in memory
-      if (MirroringMemory.Instance.isCached(this.url.href)) {
+      if (MirroringMemory.Instance.isCached(targetURL.href)) {
         return res
           .status(200)
-          .send(MirroringMemory.Instance.getSerializedHTML(this.url.href))
+          .send(MirroringMemory.Instance.getSerializedHTML(targetURL.href))
       }
 
       try {
         // mirroring
-        await this.requestHTML(req)
-        this.fetchAssetElements()
-        this.changeAssetsURL()
+        const targetHTML = await this.requestHTML(targetURL, req.headers)
+        const assetElements = this.fetchAssetElements(targetHTML)
+        this.changeAssetsURL(targetURL, assetElements)
+
+        // caching and return with mirrored html
+        MirroringMemory.Instance.caching(targetURL.href, targetHTML)
+        return res.status(200).send(targetHTML.serialize())
       } catch (err) {
         return res.status(406).json({
           err: {
@@ -93,9 +83,6 @@ export default class MirroringController {
           }
         })
       }
-
-      MirroringMemory.Instance.caching(this.url.href, this.html)
-      return res.status(200).send(this.html.serialize())
     }
   }
 
@@ -119,21 +106,25 @@ export default class MirroringController {
   /**
    * Request target html file to host.
    *
-   * @param req
+   * @param targetURL
+   * @param headers
    */
-  private static async requestHTML(req: WGRequest): Promise<void> {
+  private static async requestHTML(
+    targetURL: URL,
+    headers: IncomingHttpHeaders
+  ): Promise<JSDOM> {
     let originalHTML = ''
 
     // get html body
     await request(
       {
-        url: this.url.href,
+        url: targetURL.href,
         encoding: null,
         followOriginalHttpMethod: true,
         headers: {
-          'User-Agent': req.headers['user-agent'],
-          Accept: req.headers.accept,
-          'Accept-Language': req.headers['accept-language']
+          'User-Agent': headers['user-agent'],
+          Accept: headers.accept,
+          'Accept-Language': headers['accept-language']
         }
       },
       (error, res, body) => {
@@ -145,63 +136,72 @@ export default class MirroringController {
       }
     )
 
-    this.html = new JSDOM(originalHTML) // create dom from html
+    const targetHTML = new JSDOM(originalHTML) // create dom from html
 
     // convert all http to https because http resource load error
     const httpRegex = /(http:\/\/)/gm
-    this.html.window.document.documentElement.innerHTML = this.html.window.document.documentElement.innerHTML.replace(
+    targetHTML.window.document.documentElement.innerHTML = targetHTML.window.document.documentElement.innerHTML.replace(
       httpRegex,
       'https://'
     )
+
+    return targetHTML
   }
 
   /**
    * Fetch asset elements from target html dom.
    */
-  private static fetchAssetElements(): void {
-    this.assetElements.hrefAttrElements = Array.from(
-      this.html.window.document.querySelectorAll('[href]')
+  private static fetchAssetElements(targetHTML: JSDOM): AssetElementList {
+    const assetElements = {} as AssetElementList
+
+    assetElements.hrefAttrElements = Array.from(
+      targetHTML.window.document.querySelectorAll('[href]')
     )
 
-    this.assetElements.srcAttrElements = Array.from(
-      this.html.window.document.querySelectorAll('[src]')
+    assetElements.srcAttrElements = Array.from(
+      targetHTML.window.document.querySelectorAll('[src]')
     )
 
-    this.assetElements.srcsetAttrElements = Array.from(
-      this.html.window.document.querySelectorAll('[srcset]')
+    assetElements.srcsetAttrElements = Array.from(
+      targetHTML.window.document.querySelectorAll('[srcset]')
     )
 
     const styleURLRegex = /(url\()/
 
-    this.assetElements.styleAttrElements = Array.from(
-      this.html.window.document.querySelectorAll('[style]')
+    assetElements.styleAttrElements = Array.from(
+      targetHTML.window.document.querySelectorAll('[style]')
     ).filter(elem => styleURLRegex.test(elem.getAttribute('style')))
 
-    this.assetElements.styleTagElements = Array.from(
-      this.html.window.document.querySelectorAll('style')
+    assetElements.styleTagElements = Array.from(
+      targetHTML.window.document.querySelectorAll('style')
     ).filter(elem => styleURLRegex.test(elem.textContent))
+
+    return assetElements
   }
 
   /**
    * Change all assets url to absolute things.
    */
-  private static changeAssetsURL(): void {
+  private static changeAssetsURL(
+    targetURL: URL,
+    assetElements: AssetElementList
+  ): void {
     // convert all relative path to absolute path
-    for (const hrefElement of this.assetElements.hrefAttrElements) {
+    for (const hrefElement of assetElements.hrefAttrElements) {
       hrefElement.setAttribute(
         'href',
-        this.getAbsolutePath(hrefElement.getAttribute('href'))
+        this.getAbsolutePath(targetURL, hrefElement.getAttribute('href'))
       )
     }
 
-    for (const srcElement of this.assetElements.srcAttrElements) {
+    for (const srcElement of assetElements.srcAttrElements) {
       srcElement.setAttribute(
         'src',
-        this.getAbsolutePath(srcElement.getAttribute('src'))
+        this.getAbsolutePath(targetURL, srcElement.getAttribute('src'))
       )
     }
 
-    for (const srcsetElement of this.assetElements.srcsetAttrElements) {
+    for (const srcsetElement of assetElements.srcsetAttrElements) {
       const newSrcset = srcsetElement
         .getAttribute('srcset')
         .split(',')
@@ -209,7 +209,7 @@ export default class MirroringController {
           src = src.trimLeft()
 
           const srcTokens = src.split(' ')
-          srcTokens[0] = this.getAbsolutePath(srcTokens[0])
+          srcTokens[0] = this.getAbsolutePath(targetURL, srcTokens[0])
 
           src = srcTokens.join(' ')
 
@@ -221,22 +221,22 @@ export default class MirroringController {
 
     const stylePathRegex = /url\(['"]?([^'"()]+?)['"]?\)/gm
 
-    for (const styleAttrElement of this.assetElements.styleAttrElements) {
+    for (const styleAttrElement of assetElements.styleAttrElements) {
       styleAttrElement.setAttribute(
         'style',
         styleAttrElement
           .getAttribute('style')
           .replace(stylePathRegex, substring => {
-            return this.stylePathReplacer(substring)
+            return this.stylePathReplacer(targetURL, substring)
           })
       )
     }
 
-    for (const styleTagElement of this.assetElements.styleTagElements) {
+    for (const styleTagElement of assetElements.styleTagElements) {
       styleTagElement.innerHTML = styleTagElement.innerHTML.replace(
         stylePathRegex,
         substring => {
-          return this.stylePathReplacer(substring)
+          return this.stylePathReplacer(targetURL, substring)
         }
       )
     }
@@ -245,9 +245,10 @@ export default class MirroringController {
   /**
    * Convert all path to absolute thing.
    *
+   * @param targetURL
    * @param path
    */
-  private static getAbsolutePath(path: string): string {
+  private static getAbsolutePath(targetURL: URL, path: string): string {
     /**
      * root path: /foo/bar
      * current path: foo/bar
@@ -259,17 +260,17 @@ export default class MirroringController {
     // const hostnameRegex = /^(http|https|https:\/\/|http:\/\/)?([?a-zA-Z0-9-.+]{2,256}\.[a-z]{2,4}\b)/
 
     if (rootPathRegex.test(path)) {
-      path = `https://${this.url.host}${path}`
+      path = `https://${targetURL.host}${path}`
     } else if (currentPathRegex.test(path)) {
-      const currentPaths = this.url.pathname.split('/').slice(0, -1)
+      const currentPaths = targetURL.pathname.split('/').slice(0, -1)
       const assetPaths = path.split('/')
-      path = `https://${this.url.host}${currentPaths
+      path = `https://${targetURL.host}${currentPaths
         .concat(assetPaths)
         .join('/')}`
     } else if (parentPathRegex.test(path)) {
-      const parentPaths = this.url.pathname.split('/').slice(0, -2)
+      const parentPaths = targetURL.pathname.split('/').slice(0, -2)
       const assetPaths = path.split('/').slice(1)
-      path = `https://${this.url.host}${parentPaths
+      path = `https://${targetURL.host}${parentPaths
         .concat(assetPaths)
         .join('/')}`
     }
@@ -281,13 +282,14 @@ export default class MirroringController {
    * Handle the specific case: style path.
    * Format: `url(path)`
    *
+   * @param targetURL
    * @param stylePath
    */
-  private static stylePathReplacer(stylePath: string): string {
+  private static stylePathReplacer(targetURL: URL, stylePath: string): string {
     const stylePathRegex = /url\(['"]?([^'"()]+?)['"]?\)/gm
 
     const extractedURL = new RegExp(stylePathRegex).exec(stylePath)
-    const absolutePath = this.getAbsolutePath(extractedURL[1])
+    const absolutePath = this.getAbsolutePath(targetURL, extractedURL[1])
 
     if (stylePath.startsWith('url("')) {
       stylePath = `url("${absolutePath}")`
