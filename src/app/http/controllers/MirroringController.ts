@@ -4,7 +4,7 @@ import charset from 'charset'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
-import cache from '@@/configs/cache'
+import UniformURL from '@/modules/UniformURL'
 
 interface AssetElementList {
   hrefAttrElements: Element[]
@@ -38,11 +38,18 @@ export default class MirroringController {
         isURL: true,
         trim: true,
         customSanitizer: {
-          options: (url: string): string => {
+          options: async (url: string): Promise<string> => {
             // check if the url protocol is set
             // if not, add the default protocol `http`
             if (!url.startsWith('http')) {
               url = `http://${url}`
+            }
+
+            // check if the url is invalid and uniform it
+            try {
+              url = await UniformURL.uniform(url)
+            } catch (error) {
+              throw new Error('Invalid target url')
             }
 
             return url
@@ -58,14 +65,13 @@ export default class MirroringController {
    */
   public static getHTML(): SimpleHandler {
     return async (req, res): Promise<Response> => {
-      try {
-        // uniform request target url
-        this.url = new URL(
-          await this.uniformalizeTargetUrl(
-            req.query.url,
-            req.originalUrl.split('?url=')[1]
-          )
+      // uniform target url
+      this.url = new URL(
+        this.parseTargetURL(
+          await req.query.url,
+          req.originalUrl.split('?url=')[1]
         )
+      )
 
         // check whether if already cached
         if (cache.has(this.url.href)) {
@@ -90,37 +96,21 @@ export default class MirroringController {
     }
   }
 
-  public static async uniformalizeTargetUrl(
-    sanitizedUrl: string,
-    originalUrl: string
-  ): Promise<string> {
-    const baseUrl = sanitizedUrl.split('?')[0]
-    const query = originalUrl.split('?')[1]
+  private static parseTargetURL(
+    sanitizedURL: string,
+    originalURL: string
+  ): string {
+    const baseURL = sanitizedURL.split('?')[0]
+    const query = originalURL.split('?')[1]
 
-    // parse target url
-    let uniformUrl
+    let parsedURL
     if (query === undefined) {
-      uniformUrl = baseUrl
+      parsedURL = baseURL
     } else {
-      uniformUrl = baseUrl + '?' + query
+      parsedURL = baseURL + '?' + query
     }
 
-    // check url by response of head request
-    await request(
-      {
-        url: uniformUrl,
-        method: 'head'
-      },
-      (error, response) => {
-        if (!error) {
-          uniformUrl = response.request.uri.href // update to actual url
-        } else {
-          throw error
-        }
-      }
-    )
-
-    return uniformUrl
+    return parsedURL
   }
 
   /**
