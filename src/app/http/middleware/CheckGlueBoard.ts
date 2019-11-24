@@ -1,5 +1,5 @@
 import { checkSchema, ValidationChain } from 'express-validator'
-import { Response, NextHandler } from '@/http/RequestHandler'
+import { WGResponse, NextHandler } from '@/http/RequestHandler'
 import GlueBoard from '@@/migrate/models/glue-board'
 import { UserDoc } from '@@/migrate/schemas/user'
 
@@ -21,7 +21,7 @@ export default class CheckGlueBoard {
    * If so, find the GlueBoard document and pass to next handler.
    */
   public static handler(): NextHandler {
-    return async (req, res, next): Promise<Response | void> => {
+    return async (req, res, next): Promise<WGResponse | void> => {
       const glueBoardID = req.params.glueboard
       const glueBoard = await GlueBoard.findOne({
         id: glueBoardID

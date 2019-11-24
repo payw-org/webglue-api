@@ -1,4 +1,4 @@
-import { Response, SimpleHandler } from '@/http/RequestHandler'
+import { WGResponse, SimpleHandler } from '@/http/RequestHandler'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import GlueBoard from '@@/migrate/models/glue-board'
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
@@ -26,7 +26,7 @@ export default class SharingController {
    * Get the url hash of the shared GlueBoard
    */
   public static getHash(): SimpleHandler {
-    return (req, res): Response => {
+    return (req, res): WGResponse => {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
 
       // if sharing option is off, reject this request.
@@ -50,7 +50,7 @@ export default class SharingController {
    * Access to the shared GlueBoard
    */
   public static get(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const glueBoard = (await GlueBoard.findById(res.locals.glueBoard._id, {
         category: 1,
         fragments: 1

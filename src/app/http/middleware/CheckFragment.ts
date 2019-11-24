@@ -1,5 +1,5 @@
 import { checkSchema, ValidationChain } from 'express-validator'
-import { Response, NextHandler } from '@/http/RequestHandler'
+import { WGResponse, NextHandler } from '@/http/RequestHandler'
 import Fragment from '@@/migrate/models/fragment'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 
@@ -21,7 +21,7 @@ export default class CheckFragment {
    * If so, find the fragment document and pass to next handler.
    */
   public static handler(): NextHandler {
-    return async (req, res, next): Promise<Response | void> => {
+    return async (req, res, next): Promise<WGResponse | void> => {
       const fragmentID = req.params.fragment
       const fragment = await Fragment.findOne({
         id: fragmentID

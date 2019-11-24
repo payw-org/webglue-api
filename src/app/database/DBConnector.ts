@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import dbConfig from '@@/configs/database'
-import LogHelper from '@/helpers/LogHelper'
+import LogHelper from '@/modules/LogHelper'
 
 export default class DBConnector {
   /**
@@ -16,7 +16,7 @@ export default class DBConnector {
     })
 
     mongoose.connection.on('error', err => {
-      LogHelper.log(
+      LogHelper.Instance.log(
         'info',
         `Mongoose default connection has occured ${err} error`
       )
@@ -24,7 +24,7 @@ export default class DBConnector {
 
     process.on('SIGINT', () => {
       mongoose.connection.close(() => {
-        LogHelper.log(
+        LogHelper.Instance.log(
           'error',
           'Mongoose default connection is disconnected due to application termination'
         )

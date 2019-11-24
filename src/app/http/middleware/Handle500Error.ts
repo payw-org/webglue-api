@@ -1,5 +1,5 @@
-import { Response, ErrorHandler } from '@/http/RequestHandler'
-import LogHelper from '@/helpers/LogHelper'
+import { WGResponse, ErrorHandler } from '@/http/RequestHandler'
+import LogHelper from '@/modules/LogHelper'
 
 export default class Handle500Error {
   /**
@@ -7,8 +7,8 @@ export default class Handle500Error {
    * This is last error handler.
    */
   public static handler(): ErrorHandler {
-    return (err, req, res, next): Response => {
-      LogHelper.log('error', err.stack)
+    return (err, req, res, next): WGResponse => {
+      LogHelper.Instance.log('error', err.stack)
 
       return res.status(500).json({
         err: {

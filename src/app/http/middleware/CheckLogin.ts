@@ -1,4 +1,4 @@
-import { Response, NextHandler } from '@/http/RequestHandler'
+import { WGResponse, NextHandler } from '@/http/RequestHandler'
 
 export default class CheckLogin {
   /**
@@ -6,7 +6,7 @@ export default class CheckLogin {
    * If not, return with 401 unauthorized status code.
    */
   public static handler(): NextHandler {
-    return (req, res, next): Response | void => {
+    return (req, res, next): WGResponse | void => {
       if (req.isUnauthenticated()) {
         return res.status(401).json({
           err: {

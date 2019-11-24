@@ -2,9 +2,10 @@ import request from 'request-promise-native'
 import iconv from 'iconv-lite'
 import charset from 'charset'
 import { JSDOM } from 'jsdom'
-import { SimpleHandler, Request, Response } from '@/http/RequestHandler'
+import { SimpleHandler, WGRequest, WGResponse } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
-import cache from '@@/configs/cache'
+import UniformURL from '@/modules/webglue-api/UniformURL'
+import MirroringMemory from '@/modules/webglue-api/MirroringMemory'
 
 interface AssetElementList {
   hrefAttrElements: Element[]
@@ -38,11 +39,18 @@ export default class MirroringController {
         isURL: true,
         trim: true,
         customSanitizer: {
-          options: (url: string): string => {
+          options: async (url: string): Promise<string> => {
             // check if the url protocol is set
             // if not, add the default protocol `http`
             if (!url.startsWith('http')) {
               url = `http://${url}`
+            }
+
+            // check if the url is invalid and uniform it
+            try {
+              url = await UniformURL.uniform(url)
+            } catch (error) {
+              throw new Error('Invalid target url')
             }
 
             return url
@@ -57,22 +65,23 @@ export default class MirroringController {
    * Get mirrored html
    */
   public static getHTML(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
-      try {
-        // uniform request target url
-        this.url = new URL(
-          await this.uniformalizeTargetUrl(
-            req.query.url,
-            req.originalUrl.split('?url=')[1]
-          )
+    return async (req, res): Promise<WGResponse> => {
+      // uniform target url
+      this.url = new URL(
+        this.parseTargetURL(
+          await req.query.url,
+          req.originalUrl.split('?url=')[1]
         )
+      )
 
-        // check whether if already cached
-        if (cache.has(this.url.href)) {
-          const cachedHTML = cache.get(this.url.href) as JSDOM
-          return res.status(200).send(cachedHTML.serialize())
-        }
+      // check whether if already cached in memory
+      if (MirroringMemory.Instance.isCached(this.url.href)) {
+        return res
+          .status(200)
+          .send(MirroringMemory.Instance.getSerializedHTML(this.url.href))
+      }
 
+      try {
         // mirroring
         await this.requestHTML(req)
         this.fetchAssetElements()
@@ -85,42 +94,26 @@ export default class MirroringController {
         })
       }
 
-      cache.set(this.url.href, this.html) // caching
+      MirroringMemory.Instance.caching(this.url.href, this.html)
       return res.status(200).send(this.html.serialize())
     }
   }
 
-  public static async uniformalizeTargetUrl(
-    sanitizedUrl: string,
-    originalUrl: string
-  ): Promise<string> {
-    const baseUrl = sanitizedUrl.split('?')[0]
-    const query = originalUrl.split('?')[1]
+  private static parseTargetURL(
+    sanitizedURL: string,
+    originalURL: string
+  ): string {
+    const baseURL = sanitizedURL.split('?')[0]
+    const query = originalURL.split('?')[1]
 
-    // parse target url
-    let uniformUrl
+    let parsedURL
     if (query === undefined) {
-      uniformUrl = baseUrl
+      parsedURL = baseURL
     } else {
-      uniformUrl = baseUrl + '?' + query
+      parsedURL = baseURL + '?' + query
     }
 
-    // check url by response of head request
-    await request(
-      {
-        url: uniformUrl,
-        method: 'head'
-      },
-      (error, response) => {
-        if (!error) {
-          uniformUrl = response.request.uri.href // update to actual url
-        } else {
-          throw error
-        }
-      }
-    )
-
-    return uniformUrl
+    return parsedURL
   }
 
   /**
@@ -128,7 +121,7 @@ export default class MirroringController {
    *
    * @param req
    */
-  private static async requestHTML(req: Request): Promise<void> {
+  private static async requestHTML(req: WGRequest): Promise<void> {
     let originalHTML = ''
 
     // get html body

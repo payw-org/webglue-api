@@ -1,4 +1,4 @@
-import { Request, Response, SimpleHandler } from '@/http/RequestHandler'
+import { WGRequest, WGResponse, SimpleHandler } from '@/http/RequestHandler'
 import { UserDoc } from '@@/migrate/schemas/user'
 import { checkSchema, ValidationChain } from 'express-validator'
 import User from '@@/migrate/models/user'
@@ -15,7 +15,7 @@ export default class ProfileController {
    * Get current logged in user info briefly
    */
   public static index(): SimpleHandler {
-    return (req, res): Response => {
+    return (req, res): WGResponse => {
       const user = req.user as UserDoc
       const responseBody: IndexResponseBody = {
         email: user.email,
@@ -43,18 +43,18 @@ export default class ProfileController {
         custom: {
           // check if nickname is already in use
           options: async (nickname: string, { req }): Promise<boolean> => {
-            const duplicateUser = (await User.findOne(
+            const duplicateUser = await User.findOne(
               {
                 nickname: { $regex: new RegExp('^' + nickname + '$', 'i') } // compare case insensitive
               },
               { _id: 1 }
-            ).lean()) as UserDoc
+            ).lean()
 
             if (duplicateUser) {
               // if nickname is already in use from other user
               if (
                 duplicateUser._id.toString() !==
-                ((req as Request).user as UserDoc)._id.toString()
+                ((req as WGRequest).user as UserDoc)._id.toString()
               ) {
                 throw new Error('`nickname` already in use.')
               }
@@ -88,7 +88,7 @@ export default class ProfileController {
    * Partial update user profile.
    */
   public static update(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const user = req.user as UserDoc
 
       // update nickname

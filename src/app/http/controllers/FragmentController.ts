@@ -1,11 +1,12 @@
-import { Request, Response, SimpleHandler } from '@/http/RequestHandler'
+import { WGRequest, WGResponse, SimpleHandler } from '@/http/RequestHandler'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import GlueBoard from '@@/migrate/models/glue-board'
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
 import Fragment from '@@/migrate/models/fragment'
-import generate from 'nanoid/generate'
 import { checkSchema, ValidationChain } from 'express-validator'
 import { UserDoc } from '@@/migrate/schemas/user'
+import UniformURL from '@/modules/webglue-api/UniformURL'
+import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {
   fragments: Array<{
@@ -36,7 +37,7 @@ export default class FragmentController {
    * Get all fragments of the GlueBoard.
    */
   public static index(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       // populate fragments
       const glueBoard = (await GlueBoard.findById(res.locals.glueBoard._id, {
         _id: 0,
@@ -76,6 +77,24 @@ export default class FragmentController {
         in: 'body',
         isURL: true,
         trim: true,
+        customSanitizer: {
+          options: async (url: string): Promise<string> => {
+            // check if the url protocol is set
+            // if not, add the default protocol `http`
+            if (!url.startsWith('http')) {
+              url = `http://${url}`
+            }
+
+            // check if the url is invalid and uniform it
+            try {
+              url = await UniformURL.uniform(url)
+            } catch (error) {
+              throw new Error('Invalid target url')
+            }
+
+            return url
+          }
+        },
         errorMessage: '`url` must be a url format.'
       },
       selector: {
@@ -112,11 +131,11 @@ export default class FragmentController {
    * Create new fragment.
    */
   public static create(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       // create a fragment
       const fragment = (await Fragment.create({
-        id: generate('0123456789abcdefghijklmnopqrstuvwxyz', 16), // url id
-        url: req.body.url,
+        id: UIDGenerator.alphaNumericUID(16), // url id
+        url: await req.body.url,
         selector: req.body.selector,
         xPos: req.body.xPos,
         yPos: req.body.yPos
@@ -145,7 +164,7 @@ export default class FragmentController {
    * Get the fragment
    */
   public static get(): SimpleHandler {
-    return (req, res): Response => {
+    return (req, res): WGResponse => {
       const fragment = res.locals.fragment as FragmentDoc
 
       const responseBody: GetResponseBody = {
@@ -181,7 +200,7 @@ export default class FragmentController {
         isNumeric: true,
         errorMessage: '`scale` must be a numeric.'
       },
-      glueBoardID: {
+      transferGlueBoardID: {
         optional: {
           options: { checkFalsy: true }
         },
@@ -190,12 +209,15 @@ export default class FragmentController {
         trim: true,
         custom: {
           // check if the GlueBoard id is valid
-          options: async (glueBoardID: string, { req }): Promise<boolean> => {
-            const request = req as Request
-            const glueBoard = (await GlueBoard.findOne(
-              { id: glueBoardID },
+          options: async (
+            transferGlueBoardID: string,
+            { req }
+          ): Promise<boolean> => {
+            const request = req as WGRequest
+            const glueBoard = await GlueBoard.findOne(
+              { id: transferGlueBoardID },
               { _id: 1 }
-            ).lean()) as GlueBoardDoc
+            ).lean()
 
             // check if exist
             if (glueBoard) {
@@ -218,7 +240,7 @@ export default class FragmentController {
    * Partial update the fragment
    */
   public static update(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const fragment = res.locals.fragment as FragmentDoc
 
       // update x position
@@ -238,9 +260,9 @@ export default class FragmentController {
 
       await fragment.save()
 
-      if (req.body.glueBoardID) {
+      if (req.body.transferGlueBoardID) {
         const newGlueBoard = (await GlueBoard.findOne({
-          id: req.body.glueBoardID
+          id: req.body.transferGlueBoardID
         })) as GlueBoardDoc
         const currGlueBoard = res.locals.glueBoard as GlueBoardDoc
 
@@ -264,7 +286,7 @@ export default class FragmentController {
    * Delete the fragment
    */
   public static delete(): SimpleHandler {
-    return async (req, res): Promise<Response> => {
+    return async (req, res): Promise<WGResponse> => {
       const glueBoard = res.locals.glueBoard as GlueBoardDoc
       const fragment = res.locals.fragment as FragmentDoc
 
