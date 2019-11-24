@@ -9,17 +9,6 @@ export default class MirroringMemory {
   private cache: LRU<{}, {}>
 
   /**
-   * Private constructor for singleton pattern
-   */
-  private constructor() {
-    // initialize lru cache
-    this.cache = new LRU({
-      max: 1073741824, // 1GB
-      maxAge: 1000 * 60 // 1 minute
-    })
-  }
-
-  /**
    * Get singleton instance
    *
    * @constructor
@@ -30,6 +19,17 @@ export default class MirroringMemory {
     }
 
     return this._instance
+  }
+
+  /**
+   * Private constructor for singleton pattern
+   */
+  private constructor() {
+    // initialize lru cache
+    this.cache = new LRU({
+      max: 1073741824, // 1GB
+      maxAge: 1000 * 60 // 1 minute
+    })
   }
 
   /**
