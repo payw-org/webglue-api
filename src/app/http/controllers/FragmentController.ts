@@ -6,6 +6,7 @@ import Fragment from '@@/migrate/models/fragment'
 import generate from 'nanoid/generate'
 import { checkSchema, ValidationChain } from 'express-validator'
 import { UserDoc } from '@@/migrate/schemas/user'
+import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {
   fragments: Array<{
@@ -115,8 +116,8 @@ export default class FragmentController {
     return async (req, res): Promise<Response> => {
       // create a fragment
       const fragment = (await Fragment.create({
-        id: generate('0123456789abcdefghijklmnopqrstuvwxyz', 16), // url id
         url: req.body.url,
+        id: UIDGenerator.alphaNumericUID(16), // url id
         selector: req.body.selector,
         xPos: req.body.xPos,
         yPos: req.body.yPos

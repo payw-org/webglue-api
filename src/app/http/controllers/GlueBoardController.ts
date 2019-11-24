@@ -5,6 +5,7 @@ import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import { checkSchema, ValidationChain } from 'express-validator'
 import GlueBoard from '@@/migrate/models/glue-board'
 import generate from 'nanoid/generate'
+import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {
   glueBoards: Array<{
@@ -120,7 +121,7 @@ export default class GlueBoardController {
       // create a GlueBoard
       const glueBoard = (await GlueBoard.create({
         user: user._id,
-        id: generate('0123456789abcdefghijklmnopqrstuvwxyz', 14), // url id
+        id: UIDGenerator.alphaNumericUID(14), // url id
         category: {
           name: req.body.name,
           color: req.body.color
