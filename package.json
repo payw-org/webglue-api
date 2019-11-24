@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "body-parser": "^1.19.0",
-    "bottleneck": "^2.19.5",
     "charset": "^1.0.1",
     "connect-mongo": "^3.0.0",
     "cookie-parser": "^1.4.4",
