@@ -200,7 +200,7 @@ export default class FragmentController {
         isNumeric: true,
         errorMessage: '`scale` must be a numeric.'
       },
-      glueBoardID: {
+      transferGlueBoardID: {
         optional: {
           options: { checkFalsy: true }
         },
@@ -209,10 +209,13 @@ export default class FragmentController {
         trim: true,
         custom: {
           // check if the GlueBoard id is valid
-          options: async (glueBoardID: string, { req }): Promise<boolean> => {
+          options: async (
+            transferGlueBoardID: string,
+            { req }
+          ): Promise<boolean> => {
             const request = req as Request
             const glueBoard = await GlueBoard.findOne(
-              { id: glueBoardID },
+              { id: transferGlueBoardID },
               { _id: 1 }
             ).lean()
 
@@ -257,9 +260,9 @@ export default class FragmentController {
 
       await fragment.save()
 
-      if (req.body.glueBoardID) {
+      if (req.body.transferGlueBoardID) {
         const newGlueBoard = (await GlueBoard.findOne({
-          id: req.body.glueBoardID
+          id: req.body.transferGlueBoardID
         })) as GlueBoardDoc
         const currGlueBoard = res.locals.glueBoard as GlueBoardDoc
 
