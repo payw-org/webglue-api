@@ -1,12 +1,10 @@
-import request from 'request-promise-native'
 import { IncomingHttpHeaders } from 'http'
-import iconv from 'iconv-lite'
-import charset from 'charset'
 import { JSDOM } from 'jsdom'
 import { SimpleHandler, WGResponse } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import UniformURL from '@/modules/webglue-api/UniformURL'
 import MirroringMemory from '@/modules/webglue-api/MirroringMemory'
+import Snappy from '@/modules/webglue-api/Snappy'
 
 interface AssetElementList {
   hrefAttrElements: Element[]
@@ -113,30 +111,12 @@ export default class MirroringController {
     targetURL: URL,
     headers: IncomingHttpHeaders
   ): Promise<JSDOM> {
-    let originalHTML = ''
-
-    // get html body
-    await request(
-      {
-        url: targetURL.href,
-        encoding: null,
-        followOriginalHttpMethod: true,
-        headers: {
-          'User-Agent': headers['user-agent'],
-          Accept: headers.accept,
-          'Accept-Language': headers['accept-language']
-        }
-      },
-      (error, res, body) => {
-        if (!error) {
-          originalHTML = iconv.decode(body, charset(res.headers, body)) // decode the html according to its charset
-        } else {
-          throw error
-        }
-      }
-    )
-
-    const targetHTML = new JSDOM(originalHTML) // create dom from html
+    // create dom from html
+    const targetHTML = await Snappy.Instance.snapshotHTML(targetURL.href, {
+      userAgent: headers['user-agent'],
+      accept: headers.accept,
+      acceptLanguage: headers['accept-language']
+    })
 
     // convert all http to https because http resource load error
     const httpRegex = /(http:\/\/)/gm
