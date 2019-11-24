@@ -8,7 +8,7 @@ export default class HandleSyntaxError {
   public static handler(): ErrorHandler {
     return (err, req, res, next): Response | void => {
       if (err instanceof SyntaxError) {
-        LogHelper.log('error', err.stack)
+        LogHelper.Instance.log('error', err.stack)
 
         return res.status(400).json({
           err: {

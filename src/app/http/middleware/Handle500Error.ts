@@ -8,7 +8,7 @@ export default class Handle500Error {
    */
   public static handler(): ErrorHandler {
     return (err, req, res, next): Response => {
-      LogHelper.log('error', err.stack)
+      LogHelper.Instance.log('error', err.stack)
 
       return res.status(500).json({
         err: {
