@@ -1,5 +1,23 @@
 import mongoose, { Document } from 'mongoose'
 
+export interface FragmentJSON {
+  id: string
+  url: string
+  selector: string
+  xPos: number
+  yPos: number
+  scale: number
+  subscription: boolean
+  headers?: {
+    userAgent: string
+    accept: string
+    acceptLanguage: string
+  }
+  snapshot?: string
+  watchCycle?: number
+  lastWatchedAt?: Date
+}
+
 export interface FragmentDoc extends Document {
   id: string
   url: string
@@ -8,9 +26,14 @@ export interface FragmentDoc extends Document {
   yPos: number
   scale: number
   subscription: boolean
-  snapshot: string
-  watchCycle: number
-  lastWatchedAt: Date
+  headers?: {
+    userAgent: string
+    accept: string
+    acceptLanguage: string
+  }
+  snapshot?: string
+  watchCycle?: number
+  lastWatchedAt?: Date
 }
 
 const fragmentSchema = new mongoose.Schema({
@@ -21,6 +44,12 @@ const fragmentSchema = new mongoose.Schema({
   yPos: { type: Number, required: true },
   scale: { type: Number, required: true, default: 1 },
   subscription: { type: Boolean, required: true, default: false },
+  headers: {
+    userAgent: { type: String, required: false },
+    accept: { type: String, required: false },
+    acceptLanguage: { type: String, required: false },
+    required: false
+  },
   snapshot: { type: String, required: false },
   watchCycle: { type: Number, required: false },
   lastWatchedAt: { type: Date, required: false }
