@@ -118,13 +118,13 @@ export default class FragmentController {
   public static create(): SimpleHandler {
     return async (req, res): Promise<WGResponse> => {
       // create a fragment
-      const fragment = (await Fragment.create({
+      const fragment = await Fragment.create({
         id: UIDGenerator.alphaNumericUID(16), // url id
         url: await req.body.url,
         selector: req.body.selector,
         xPos: req.body.xPos,
         yPos: req.body.yPos
-      })) as FragmentDoc
+      })
 
       // if scale is set, apply to document.
       if (req.body.scale) {
@@ -293,9 +293,9 @@ export default class FragmentController {
       await fragment.save()
 
       if (req.body.transferGlueBoardID) {
-        const transferGlueBoard = (await GlueBoard.findOne({
+        const transferGlueBoard = await GlueBoard.findOne({
           id: req.body.transferGlueBoardID
-        })) as GlueBoardDoc
+        })
         const currGlueBoard = res.locals.glueBoard as GlueBoardDoc
 
         // unlink from current GlueBoard

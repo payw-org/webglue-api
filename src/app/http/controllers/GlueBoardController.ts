@@ -100,14 +100,14 @@ export default class GlueBoardController {
       const user = req.user as UserDoc
 
       // create a GlueBoard
-      const glueBoard = (await GlueBoard.create({
+      const glueBoard = await GlueBoard.create({
         user: user._id,
         id: UIDGenerator.alphaNumericUID(14), // url id
         category: {
           name: req.body.name,
           color: req.body.color
         }
-      })) as GlueBoardDoc
+      })
 
       // Add new GlueBoard to user
       user.glueBoards.push(glueBoard._id)

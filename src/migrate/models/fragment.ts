@@ -1,6 +1,9 @@
-import mongoose from 'mongoose'
-import fragmentSchema from '@@/migrate/schemas/fragment'
+import mongoose, { Model } from 'mongoose'
+import fragmentSchema, { FragmentDoc } from '@@/migrate/schemas/fragment'
 
-const Fragment = mongoose.model('Fragment', fragmentSchema)
+const Fragment = mongoose.model<FragmentDoc, Model<FragmentDoc>>(
+  'Fragment',
+  fragmentSchema
+)
 
 export default Fragment

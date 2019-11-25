@@ -1,6 +1,6 @@
-import mongoose from 'mongoose'
-import userSchema from '@@/migrate/schemas/user'
+import mongoose, { Model } from 'mongoose'
+import userSchema, { UserDoc } from '@@/migrate/schemas/user'
 
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model<UserDoc, Model<UserDoc>>('User', userSchema)
 
 export default User
