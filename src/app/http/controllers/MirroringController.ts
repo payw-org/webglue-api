@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import { SimpleHandler, WGResponse } from '@/http/RequestHandler'
 import { checkSchema, ValidationChain } from 'express-validator'
 import UniformURL from '@/modules/webglue-api/UniformURL'
-import MirroringMemory from '@/modules/webglue-api/MirroringMemory'
+import HTMLMemory from '@/modules/webglue-api/HTMLMemory'
 import Snappy from '@/modules/webglue-api/Snappy'
 
 interface AssetElementList {
@@ -61,10 +61,12 @@ export default class MirroringController {
       )
 
       // check whether if already cached in memory
-      if (MirroringMemory.Instance.isCached(targetURL.href)) {
+      if (HTMLMemory.Instance.isCached('mirroring', targetURL.href)) {
         return res
           .status(200)
-          .send(MirroringMemory.Instance.getSerializedHTML(targetURL.href))
+          .send(
+            HTMLMemory.Instance.getSerializedHTML('mirroring', targetURL.href)
+          )
       }
 
       try {
@@ -74,7 +76,7 @@ export default class MirroringController {
         this.changeAssetsURL(targetURL, assetElements)
 
         // caching and return with mirrored html
-        MirroringMemory.Instance.caching(targetURL.href, targetHTML)
+        HTMLMemory.Instance.caching('mirroring', targetURL.href, targetHTML)
         return res.status(200).send(targetHTML.serialize())
       } catch (err) {
         return res.status(406).json({
