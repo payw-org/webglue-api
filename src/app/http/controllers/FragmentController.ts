@@ -79,6 +79,8 @@ export default class FragmentController {
         trim: true,
         customSanitizer: {
           options: async (url: string): Promise<string> => {
+            url = encodeURI(url)
+
             // check if the url protocol is set
             // if not, add the default protocol `http`
             if (!url.startsWith('http')) {

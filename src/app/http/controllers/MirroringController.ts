@@ -24,6 +24,8 @@ export default class MirroringController {
         trim: true,
         customSanitizer: {
           options: async (url: string): Promise<string> => {
+            url = encodeURI(url)
+
             // check if the url protocol is set
             // if not, add the default protocol `http`
             if (!url.startsWith('http')) {
@@ -98,7 +100,7 @@ export default class MirroringController {
       parsedURL = baseURL + '?' + query
     }
 
-    return parsedURL
+    return encodeURI(parsedURL)
   }
 
   /**
