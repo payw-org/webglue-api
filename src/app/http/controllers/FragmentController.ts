@@ -31,7 +31,8 @@ export default class FragmentController {
       })
         .lean()
         .populate({
-          path: 'fragments'
+          path: 'fragments',
+          select: '-_id -__v'
         })) as GlueBoardDoc
 
       const fragments = glueBoard.fragments as FragmentDoc[]
@@ -42,14 +43,7 @@ export default class FragmentController {
 
       // compose response body
       for (const fragment of fragments) {
-        responseBody.fragments.push({
-          id: fragment.id,
-          url: fragment.url,
-          selector: fragment.selector,
-          xPos: fragment.xPos,
-          yPos: fragment.yPos,
-          scale: fragment.scale
-        })
+        responseBody.fragments.push(fragment)
       }
 
       return res.status(200).json(responseBody)
@@ -153,16 +147,11 @@ export default class FragmentController {
    */
   public static get(): SimpleHandler {
     return (req, res): WGResponse => {
-      const fragment = res.locals.fragment as FragmentDoc
+      const fragment = (res.locals.fragment as FragmentDoc).toJSON()
+      delete fragment._id
+      delete fragment.__v
 
-      const responseBody: GetResponseBody = {
-        id: fragment.id,
-        url: fragment.url,
-        selector: fragment.selector,
-        xPos: fragment.xPos,
-        yPos: fragment.yPos,
-        scale: fragment.scale
-      }
+      const responseBody: GetResponseBody = fragment
 
       return res.status(200).json(responseBody)
     }
