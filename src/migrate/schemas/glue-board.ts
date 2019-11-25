@@ -2,6 +2,15 @@ import mongoose, { Document } from 'mongoose'
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
 import { UserDoc } from '@@/migrate/schemas/user'
 
+export interface GlueBoardJSON {
+  id: string
+  category: {
+    name: string
+    color: string
+  }
+  sharing: boolean
+}
+
 export interface GlueBoardDoc extends Document {
   user: string | UserDoc
   id: string
