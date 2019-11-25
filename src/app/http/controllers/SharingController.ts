@@ -62,10 +62,7 @@ export default class SharingController {
         })) as GlueBoardDoc
 
       const responseBody: GetResponseBody = {
-        category: {
-          name: glueBoard.category.name,
-          color: glueBoard.category.color
-        },
+        category: glueBoard.category,
         fragments: []
       }
 
