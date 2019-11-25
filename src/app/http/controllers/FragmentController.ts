@@ -7,6 +7,7 @@ import { checkSchema, ValidationChain } from 'express-validator'
 import { UserDoc } from '@@/migrate/schemas/user'
 import UniformURL from '@/modules/webglue-api/UniformURL'
 import UIDGenerator from '@/modules/UIDGenerator'
+import Snappy from '@/modules/webglue-api/Snappy'
 
 interface IndexResponseBody {
   fragments: FragmentJSON[]
@@ -19,6 +20,8 @@ interface CreateResponseBody {
 }
 
 export default class FragmentController {
+  public static readonly DEFAULT_WATCH_CYCLE = 60
+
   /**
    * Get all fragments of the GlueBoard.
    */
@@ -177,6 +180,21 @@ export default class FragmentController {
         isNumeric: true,
         errorMessage: '`scale` must be a numeric.'
       },
+      subscription: {
+        optional: true,
+        in: 'body',
+        isBoolean: true,
+        errorMessage: '`subscription` must be a boolean.'
+      },
+      watchCycle: {
+        optional: true,
+        in: 'body',
+        isInt: {
+          options: {
+            min: 30
+          }
+        }
+      },
       transferGlueBoardID: {
         optional: {
           options: { checkFalsy: true }
@@ -233,6 +251,43 @@ export default class FragmentController {
       // update scale
       if (req.body.scale) {
         fragment.scale = req.body.scale
+      }
+
+      // update subscription
+      if (req.body.subscription !== undefined) {
+        if (req.body.subscription === true && fragment.subscription === false) {
+          // subscribe
+          fragment.subscription = true
+          fragment.headers.userAgent = req.headers['user-agent']
+          fragment.headers.accept = req.headers.accept
+          fragment.headers.acceptLanguage = req.headers['accept-language']
+          fragment.snapshot = (
+            await Snappy.Instance.snapshotElement(
+              fragment.url,
+              fragment.headers,
+              fragment.selector
+            )
+          ).outerHTML
+          fragment.watchCycle = this.DEFAULT_WATCH_CYCLE
+          fragment.lastWatchedAt = new Date()
+        } else if (
+          req.body.subscription === false &&
+          fragment.subscription === true
+        ) {
+          // unsubscribe
+          fragment.subscription = false
+          fragment.headers = undefined
+          fragment.snapshot = undefined
+          fragment.watchCycle = undefined
+          fragment.lastWatchedAt = undefined
+        }
+      }
+
+      // update watch cycle
+      if (req.body.watchCycle) {
+        if (fragment.subscription) {
+          fragment.watchCycle = req.body.watchCycle
+        }
       }
 
       await fragment.save()
