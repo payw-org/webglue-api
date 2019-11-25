@@ -1,14 +1,9 @@
 import { WGRequest, WGResponse, SimpleHandler } from '@/http/RequestHandler'
-import { UserDoc } from '@@/migrate/schemas/user'
+import { UserDoc, UserJSON } from '@@/migrate/schemas/user'
 import { checkSchema, ValidationChain } from 'express-validator'
 import User from '@@/migrate/models/user'
 
-interface IndexResponseBody {
-  email: string
-  nickname: string
-  image: string
-  name: string
-}
+type IndexResponseBody = UserJSON
 
 export default class ProfileController {
   /**
@@ -16,13 +11,14 @@ export default class ProfileController {
    */
   public static index(): SimpleHandler {
     return (req, res): WGResponse => {
-      const user = req.user as UserDoc
-      const responseBody: IndexResponseBody = {
-        email: user.email,
-        nickname: user.nickname,
-        image: user.image,
-        name: user.name
-      }
+      const user = (req.user as UserDoc).toJSON()
+      delete user._id
+      delete user.__v
+      delete user.googleId
+      delete user.loggedInAt
+      delete user.glueBoards
+
+      const responseBody: IndexResponseBody = user
 
       return res.status(200).json(responseBody)
     }
