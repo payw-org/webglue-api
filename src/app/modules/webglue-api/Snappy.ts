@@ -2,6 +2,7 @@ import request from 'request-promise-native'
 import iconv from 'iconv-lite'
 import charset from 'charset'
 import { JSDOM } from 'jsdom'
+import HTMLMemory from '@/modules/webglue-api/HTMLMemory'
 
 interface UserHeaders {
   userAgent: string
@@ -38,7 +39,12 @@ export default class Snappy {
    * @param headers
    */
   public async snapshotHTML(url: string, headers: UserHeaders): Promise<JSDOM> {
-    let html = ''
+    // check whether if already cached in memory
+    if (HTMLMemory.Instance.isCached('snapshot', url)) {
+      return HTMLMemory.Instance.getHTML('snapshot', url)
+    }
+
+    let html = null
     await request(
       {
         url: url,
@@ -52,14 +58,18 @@ export default class Snappy {
       },
       (error, response, body) => {
         if (!error) {
-          html = iconv.decode(body, charset(response.headers, body)) // decode the html according to its charset
+          // decode the html according to its charset
+          html = new JSDOM(iconv.decode(body, charset(response.headers, body)))
         } else {
           throw error
         }
       }
     )
 
-    return new JSDOM(html)
+    // caching
+    HTMLMemory.Instance.caching('snapshot', url, html)
+
+    return html
   }
 
   /**
