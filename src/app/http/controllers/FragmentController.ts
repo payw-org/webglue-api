@@ -1,32 +1,18 @@
 import { WGRequest, WGResponse, SimpleHandler } from '@/http/RequestHandler'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import GlueBoard from '@@/migrate/models/glue-board'
-import { FragmentDoc } from '@@/migrate/schemas/fragment'
 import Fragment from '@@/migrate/models/fragment'
+import { FragmentDoc, FragmentJSON } from '@@/migrate/schemas/fragment'
 import { checkSchema, ValidationChain } from 'express-validator'
 import { UserDoc } from '@@/migrate/schemas/user'
 import UniformURL from '@/modules/webglue-api/UniformURL'
 import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {
-  fragments: Array<{
-    id: string
-    url: string
-    selector: string
-    xPos: number
-    yPos: number
-    scale: number
-  }>
+  fragments: FragmentJSON[]
 }
 
-interface GetResponseBody {
-  id: string
-  url: string
-  selector: string
-  xPos: number
-  yPos: number
-  scale: number
-}
+type GetResponseBody = FragmentJSON
 
 interface CreateResponseBody {
   createdID: string
