@@ -18,6 +18,7 @@ export default class RouteServiceProvider {
       origin: process.env.CORS_ALLOWED_LIST.split(' '),
       credentials: true
     }),
+    helmet(),
     bodyParser.json(),
     bodyParser.urlencoded({ extended: true }),
     session,
