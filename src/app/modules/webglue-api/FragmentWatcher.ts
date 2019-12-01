@@ -3,6 +3,7 @@ import Fragment from '@@/migrate/models/fragment'
 import moment from 'moment'
 import pLimit from 'p-limit'
 import Snappy from '@/modules/webglue-api/Snappy'
+import { JSDOM } from 'jsdom'
 
 export default class FragmentWatcher {
   private static _instance: FragmentWatcher
@@ -25,6 +26,35 @@ export default class FragmentWatcher {
    */
   // eslint-disable-next-line no-useless-constructor,@typescript-eslint/no-empty-function
   private constructor() {}
+
+  /**
+   * Main logic for fragment watcher.
+   * It detect if fragment is changed,
+   * and publish event to fragment notifier who is subscriber for this class.
+   */
+  public async watch(): Promise<void> {
+    const fragmentsToWatch = await this.getAllFragmentsToWatch()
+    const snapshots = await this.takeSnapshots(fragmentsToWatch)
+
+    // change detection
+    for (let i = 0; i < fragmentsToWatch.length; i++) {
+      // extract contents
+      const prevContents = new JSDOM(fragmentsToWatch[i].snapshot).window
+        .document.body.firstElementChild.textContent
+      const currContents = snapshots[i].textContent
+
+      // changed
+      if (prevContents !== currContents) {
+        fragmentsToWatch[i].snapshot = snapshots[i].outerHTML
+        // @TODO: publish to notifier
+      }
+
+      // update last watched date
+      fragmentsToWatch[i].lastWatchedAt = new Date()
+
+      await fragmentsToWatch[i].save()
+    }
+  }
 
   private async getAllFragmentsToWatch(): Promise<FragmentDoc[]> {
     // get all subscribers
