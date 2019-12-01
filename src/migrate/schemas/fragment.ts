@@ -47,7 +47,7 @@ const fragmentSchema = new mongoose.Schema({
   url: { type: String, required: true },
   selector: {
     name: { type: String, required: true },
-    offset: { type: Number, required: true, default: 1 }
+    offset: { type: Number, required: true, default: 0 }
   },
   xPos: { type: Number, required: true },
   yPos: { type: Number, required: true },
