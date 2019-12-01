@@ -193,7 +193,9 @@ export default class FragmentController {
           options: {
             min: 30
           }
-        }
+        },
+        errorMessage:
+          '`watchCycle` must be a integer which is greater than equal 30'
       },
       transferGlueBoardID: {
         optional: {
