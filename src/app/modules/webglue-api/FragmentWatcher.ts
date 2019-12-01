@@ -1,6 +1,8 @@
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
 import Fragment from '@@/migrate/models/fragment'
 import moment from 'moment'
+import pLimit from 'p-limit'
+import Snappy from '@/modules/webglue-api/Snappy'
 
 export default class FragmentWatcher {
   private static _instance: FragmentWatcher
@@ -53,5 +55,29 @@ export default class FragmentWatcher {
         lastWatchedAt: 1
       }
     )
+  }
+
+  /**
+   * Take the fragment snapshots concurrently.
+   *
+   * @param fragments
+   */
+  private async takeSnapshots(fragments: FragmentDoc[]): Promise<Element[]> {
+    const promiseLimiter = pLimit(3) // run 3 snapshot promise at once
+
+    const snapshotPromiseList: Promise<Element>[] = []
+    for (const fragment of fragments) {
+      snapshotPromiseList.push(
+        promiseLimiter(() =>
+          Snappy.Instance.snapshotElement(
+            fragment.url,
+            fragment.headers,
+            fragment.selector
+          )
+        )
+      )
+    }
+
+    return Promise.all(snapshotPromiseList)
   }
 }
