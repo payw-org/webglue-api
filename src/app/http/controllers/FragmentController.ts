@@ -82,14 +82,25 @@ export default class FragmentController {
         },
         errorMessage: '`url` must be a url format.'
       },
-      selector: {
+      'selector.name': {
         exists: {
           options: { checkFalsy: true }
         },
         in: 'body',
         isString: true,
         trim: true,
-        errorMessage: '`selector` must be a string.'
+        errorMessage: '`selector.name` must be a string.'
+      },
+      'selector.offset': {
+        optional: true,
+        in: 'body',
+        isInt: {
+          options: {
+            min: 0
+          }
+        },
+        errorMessage:
+          '`selector.offset` must be a integer which is greater than 0'
       },
       xPos: {
         exists: true,
@@ -267,7 +278,8 @@ export default class FragmentController {
             await Snappy.Instance.snapshotElement(
               fragment.url,
               fragment.headers,
-              fragment.selector
+              fragment.selector.name,
+              fragment.selector.offset
             )
           ).outerHTML
           fragment.watchCycle = this.DEFAULT_WATCH_CYCLE

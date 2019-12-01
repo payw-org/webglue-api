@@ -14,7 +14,10 @@ interface GetResponseBody {
   }
   fragments: Array<{
     url: string
-    selector: string
+    selector: {
+      name: string
+      offset: number
+    }
     xPos: number
     yPos: number
     scale: number

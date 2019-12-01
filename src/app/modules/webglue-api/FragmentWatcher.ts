@@ -102,7 +102,8 @@ export default class FragmentWatcher {
           Snappy.Instance.snapshotElement(
             fragment.url,
             fragment.headers,
-            fragment.selector
+            fragment.selector.name,
+            fragment.selector.offset
           )
         )
       )

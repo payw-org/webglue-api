@@ -78,14 +78,16 @@ export default class Snappy {
    * @param url
    * @param headers
    * @param selector
+   * @param index
    */
   public async snapshotElement(
     url: string,
     headers: UserHeaders,
-    selector: string
+    selector: string,
+    index: number
   ): Promise<Element> {
     const html = await this.snapshotHTML(url, headers)
 
-    return html.window.document.querySelector(selector)
+    return html.window.document.querySelectorAll(selector)[index]
   }
 }
