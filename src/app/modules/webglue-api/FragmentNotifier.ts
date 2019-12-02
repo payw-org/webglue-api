@@ -19,7 +19,7 @@ export default class FragmentNotifier {
     this.sendCaptureToUser(user, url, captureImg)
   }
 
-  public async capture(url: string, selector: Selector): Promise<string> {
+  private async capture(url: string, selector: Selector): Promise<string> {
     const page = await BrowserHandler.Instance.browser.newPage()
     await page.setViewport(FragmentNotifier.VIEWPORT)
     await page.goto(url, { waitUntil: 'networkidle2' })
@@ -38,7 +38,7 @@ export default class FragmentNotifier {
     return capture
   }
 
-  public sendCaptureToUser(user: UserDoc, url: string, capture: string): void {
+  private sendCaptureToUser(user: UserDoc, url: string, capture: string): void {
     Mailer.Instance.sendMail({
       from: '"webglue notifier" <contact@payw.org>',
       to: user.email,
