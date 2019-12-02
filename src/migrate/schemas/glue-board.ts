@@ -1,12 +1,23 @@
 import mongoose, { Document } from 'mongoose'
 import { FragmentDoc } from '@@/migrate/schemas/fragment'
-import categorySchema, { CategoryDoc } from '@@/migrate/schemas/category'
 import { UserDoc } from '@@/migrate/schemas/user'
+
+export interface GlueBoardJSON {
+  id: string
+  category: {
+    name: string
+    color: string
+  }
+  sharing: boolean
+}
 
 export interface GlueBoardDoc extends Document {
   user: string | UserDoc
   id: string
-  category: CategoryDoc
+  category: {
+    name: string
+    color: string
+  }
   sharing: boolean
   fragments?: Array<string | FragmentDoc>
 }
@@ -14,7 +25,10 @@ export interface GlueBoardDoc extends Document {
 const glueBoardSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   id: { type: String, required: true, unique: true },
-  category: { type: categorySchema, required: true },
+  category: {
+    name: { type: String, required: true },
+    color: { type: String, required: true }
+  },
   sharing: { type: Boolean, required: true, default: false },
   fragments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fragment' }]
 })

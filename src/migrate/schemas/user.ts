@@ -1,6 +1,13 @@
 import mongoose, { Document } from 'mongoose'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 
+export interface UserJSON {
+  email: string
+  nickname: string
+  image: string
+  name: string
+}
+
 export interface UserDoc extends Document {
   googleId: string
   email: string

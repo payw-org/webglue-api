@@ -14,7 +14,10 @@ interface GetResponseBody {
   }
   fragments: Array<{
     url: string
-    selector: string
+    selector: {
+      name: string
+      offset: number
+    }
     xPos: number
     yPos: number
     scale: number
@@ -62,10 +65,7 @@ export default class SharingController {
         })) as GlueBoardDoc
 
       const responseBody: GetResponseBody = {
-        category: {
-          name: glueBoard.category.name,
-          color: glueBoard.category.color
-        },
+        category: glueBoard.category,
         fragments: []
       }
 

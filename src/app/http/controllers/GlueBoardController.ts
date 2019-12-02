@@ -1,30 +1,16 @@
 import { WGRequest, WGResponse, SimpleHandler } from '@/http/RequestHandler'
 import { UserDoc } from '@@/migrate/schemas/user'
 import User from '@@/migrate/models/user'
-import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
+import { GlueBoardDoc, GlueBoardJSON } from '@@/migrate/schemas/glue-board'
 import { checkSchema, ValidationChain } from 'express-validator'
 import GlueBoard from '@@/migrate/models/glue-board'
 import UIDGenerator from '@/modules/UIDGenerator'
 
 interface IndexResponseBody {
-  glueBoards: Array<{
-    id: string
-    category: {
-      name: string
-      color: string
-    }
-    sharing: boolean
-  }>
+  glueBoards: GlueBoardJSON[]
 }
 
-interface GetResponseBody {
-  id: string
-  category: {
-    name: string
-    color: string
-  }
-  sharing: boolean
-}
+type GetResponseBody = GlueBoardJSON
 
 interface CreateResponseBody {
   createdID: string
@@ -44,7 +30,7 @@ export default class GlueBoardController {
         .lean()
         .populate({
           path: 'glueBoards',
-          select: '-_id -category._id'
+          select: '-_id -__v -user -fragments'
         })) as UserDoc
 
       const glueBoards = user.glueBoards as GlueBoardDoc[]
@@ -55,11 +41,7 @@ export default class GlueBoardController {
 
       // compose response body
       for (const glueBoard of glueBoards) {
-        responseBody.glueBoards.push({
-          id: glueBoard.id,
-          category: glueBoard.category,
-          sharing: glueBoard.sharing
-        })
+        responseBody.glueBoards.push(glueBoard)
       }
 
       return res.status(200).json(responseBody)
@@ -118,14 +100,14 @@ export default class GlueBoardController {
       const user = req.user as UserDoc
 
       // create a GlueBoard
-      const glueBoard = (await GlueBoard.create({
+      const glueBoard = await GlueBoard.create({
         user: user._id,
         id: UIDGenerator.alphaNumericUID(14), // url id
         category: {
           name: req.body.name,
           color: req.body.color
         }
-      })) as GlueBoardDoc
+      })
 
       // Add new GlueBoard to user
       user.glueBoards.push(glueBoard._id)
@@ -144,16 +126,13 @@ export default class GlueBoardController {
    */
   public static get(): SimpleHandler {
     return (req, res): WGResponse => {
-      const glueBoard = res.locals.glueBoard as GlueBoardDoc
+      const glueBoard = (res.locals.glueBoard as GlueBoardDoc).toJSON()
+      delete glueBoard._id
+      delete glueBoard.__v
+      delete glueBoard.user
+      delete glueBoard.fragments
 
-      const responseBody: GetResponseBody = {
-        id: glueBoard.id,
-        category: {
-          name: glueBoard.category.name,
-          color: glueBoard.category.color
-        },
-        sharing: glueBoard.sharing
-      }
+      const responseBody: GetResponseBody = glueBoard
 
       return res.status(200).json(responseBody)
     }

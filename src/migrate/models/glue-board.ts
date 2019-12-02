@@ -1,6 +1,10 @@
-import mongoose from 'mongoose'
-import glueBoardSchema from '@@/migrate/schemas/glue-board'
+import mongoose, { Model } from 'mongoose'
+import glueBoardSchema, { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 
-const GlueBoard = mongoose.model('GlueBoard', glueBoardSchema, 'glueBoards')
+const GlueBoard = mongoose.model<GlueBoardDoc, Model<GlueBoardDoc>>(
+  'GlueBoard',
+  glueBoardSchema,
+  'glueBoards'
+)
 
 export default GlueBoard

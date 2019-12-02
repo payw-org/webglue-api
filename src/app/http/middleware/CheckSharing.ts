@@ -1,6 +1,5 @@
 import { WGResponse, NextHandler } from '@/http/RequestHandler'
 import GlueBoard from '@@/migrate/models/glue-board'
-import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import { checkSchema, ValidationChain } from 'express-validator'
 
 export default class CheckSharing {
@@ -19,9 +18,9 @@ export default class CheckSharing {
   public static handler(): NextHandler {
     return async (req, res, next): Promise<WGResponse | void> => {
       const glueBoardID = req.params.hash
-      const glueBoard = (await GlueBoard.findOne({
+      const glueBoard = await GlueBoard.findOne({
         id: glueBoardID
-      })) as GlueBoardDoc
+      })
 
       // cannot find the GlueBoard which is corresponding to hash
       if (!glueBoard) {
