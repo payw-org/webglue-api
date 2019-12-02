@@ -30,7 +30,7 @@ export default class Mailer {
     this.transporter = nodeMailer.createTransport({
       service: process.env.MAIL_SERVICE,
       host: process.env.MAIL_HOST,
-      port: parseInt(process.env.MAIL_PORT),
+      port: parseInt(process.env.MAIL_PORT, 10),
       secure: true,
       auth: {
         user: process.env.MAIL_USERNAME,
