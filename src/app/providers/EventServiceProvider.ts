@@ -16,7 +16,7 @@ export default class EventServiceProvider {
         selector: { name: string; offset: number }
       ) => {
         const notifier = new FragmentNotifier()
-        notifier.notify(user, url, selector)
+        notifier.notify(user, url, selector).then()
       }
     )
   }
