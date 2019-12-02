@@ -102,6 +102,7 @@ export default class MirroringController {
       parsedURL = baseURL + '?' + query
     }
 
+    // return encodeURI(parsedURL)
     return parsedURL
   }
 
