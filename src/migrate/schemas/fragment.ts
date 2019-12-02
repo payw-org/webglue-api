@@ -1,4 +1,5 @@
 import mongoose, { Document } from 'mongoose'
+import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 
 export interface FragmentJSON {
   id: string
@@ -22,6 +23,7 @@ export interface FragmentJSON {
 }
 
 export interface FragmentDoc extends Document {
+  glueBoard: string | GlueBoardDoc
   id: string
   url: string
   selector: {
@@ -43,6 +45,11 @@ export interface FragmentDoc extends Document {
 }
 
 const fragmentSchema = new mongoose.Schema({
+  glueBoard: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'GlueBoard',
+    required: true
+  },
   id: { type: String, required: true, unique: true },
   url: { type: String, required: true },
   selector: {

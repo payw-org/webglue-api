@@ -35,7 +35,7 @@ export default class FragmentController {
         .lean()
         .populate({
           path: 'fragments',
-          select: '-_id -__v'
+          select: '-_id -__v -glueBoard'
         })) as GlueBoardDoc
 
       const fragments = glueBoard.fragments as FragmentDoc[]

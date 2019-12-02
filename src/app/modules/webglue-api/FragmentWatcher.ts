@@ -78,13 +78,17 @@ export default class FragmentWatcher {
         _id: { $in: watchList.map(subscriber => subscriber._id) }
       },
       {
+        glueBoard: 1,
         url: 1,
         selector: 1,
         headers: 1,
         snapshot: 1,
         lastWatchedAt: 1
       }
-    )
+    ).populate({
+      path: 'glueBoard',
+      select: 'user -_id'
+    })
   }
 
   /**
