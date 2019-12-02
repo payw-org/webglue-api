@@ -130,6 +130,7 @@ export default class FragmentController {
     return async (req, res): Promise<WGResponse> => {
       // create a fragment
       const fragment = await Fragment.create({
+        glueBoard: res.locals.glueBoard._id,
         id: UIDGenerator.alphaNumericUID(16), // url id
         url: await req.body.url,
         selector: req.body.selector,
@@ -322,6 +323,9 @@ export default class FragmentController {
         // link to new GlueBoard
         transferGlueBoard.fragments.push(fragment._id)
         await transferGlueBoard.save()
+
+        fragment.glueBoard = transferGlueBoard._id
+        await fragment.save()
       }
 
       return res.status(204).json()
