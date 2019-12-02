@@ -42,7 +42,7 @@ export default class FragmentNotifier {
     Mailer.Instance.sendMail({
       from: '"webglue notifier" <contact@payw.org>',
       to: user.email,
-      subject: 'webglue-fragment 변화 알림',
+      subject: 'webglue fragment 변화 알림',
       html: `<a href="${url}"><img src="cid:changed@fragment.ee" /></a>`,
       attachments: [
         {
