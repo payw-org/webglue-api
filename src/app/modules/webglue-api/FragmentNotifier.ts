@@ -1,4 +1,6 @@
 import BrowserHandler from '@/modules/BrowserHandler'
+import { UserDoc } from '@@/migrate/schemas/user'
+import Mailer from '@/modules/Mailer'
 
 interface Selector {
   name: string
@@ -8,7 +10,14 @@ interface Selector {
 export default class FragmentNotifier {
   private static readonly VIEWPORT = { width: 1280, height: 800 }
 
-  // public notify(): void {}
+  public async notify(
+    user: UserDoc,
+    url: string,
+    selector: Selector
+  ): Promise<void> {
+    const captureImg = await this.capture(url, selector)
+    this.sendCaptureToUser(user, url, captureImg)
+  }
 
   public async capture(url: string, selector: Selector): Promise<string> {
     const page = await BrowserHandler.Instance.browser.newPage()
@@ -29,5 +38,20 @@ export default class FragmentNotifier {
     return capture
   }
 
-  // public sendCaptureToUser(): void {}
+  public sendCaptureToUser(user: UserDoc, url: string, capture: string): void {
+    Mailer.Instance.sendMail({
+      from: '"webglue notifier" <contact@payw.org>',
+      to: user.email,
+      subject: 'webglue-fragment 변화 알림',
+      html: `<a href="${url}"><img src="cid:changed@fragment.ee" /></a>`,
+      attachments: [
+        {
+          filename: 'fragment.png',
+          content: capture,
+          encoding: 'base64',
+          cid: 'changed@fragment.ee' // same cid value as in the html img src
+        }
+      ]
+    })
+  }
 }
