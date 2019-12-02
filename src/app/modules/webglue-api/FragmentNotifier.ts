@@ -20,7 +20,7 @@ export default class FragmentNotifier {
       return null
     }
 
-    const capture = element.screenshot({
+    const capture = await element.screenshot({
       encoding: 'base64'
     })
 
