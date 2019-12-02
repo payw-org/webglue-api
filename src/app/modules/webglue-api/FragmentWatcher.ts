@@ -4,8 +4,16 @@ import moment from 'moment'
 import pLimit from 'p-limit'
 import Snappy from '@/modules/webglue-api/Snappy'
 import { JSDOM } from 'jsdom'
+import EventEmitter from 'events'
+import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
+import { UserDoc } from '@@/migrate/schemas/user'
 
-export default class FragmentWatcher {
+export default class FragmentWatcher extends EventEmitter {
+  /**
+   * Event name about changed fragment
+   */
+  public static readonly CHANGE_EVENT = 'changed'
+
   private static _instance: FragmentWatcher
 
   /**
@@ -24,8 +32,10 @@ export default class FragmentWatcher {
   /**
    * Private constructor for singleton pattern
    */
-  // eslint-disable-next-line no-useless-constructor,@typescript-eslint/no-empty-function
-  private constructor() {}
+  // eslint-disable-next-line no-useless-constructor
+  private constructor() {
+    super()
+  }
 
   /**
    * Main logic for fragment watcher.
@@ -45,8 +55,13 @@ export default class FragmentWatcher {
 
       // changed
       if (prevContents !== currContents) {
+        const user = (fragmentsToWatch[i].glueBoard as GlueBoardDoc)
+          .user as UserDoc
+        const url = fragmentsToWatch[i].url
+        const selector = fragmentsToWatch[i].selector
+
+        this.emit(FragmentWatcher.CHANGE_EVENT, user, url, selector)
         fragmentsToWatch[i].snapshot = snapshots[i].outerHTML
-        // @TODO: publish to notifier
       }
 
       // update last watched date
@@ -87,7 +102,10 @@ export default class FragmentWatcher {
       }
     ).populate({
       path: 'glueBoard',
-      select: 'user -_id'
+      select: 'user -_id',
+      populate: {
+        path: 'user'
+      }
     })
   }
 
