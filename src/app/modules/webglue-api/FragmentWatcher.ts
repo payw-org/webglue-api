@@ -4,7 +4,7 @@ import moment from 'moment'
 import pLimit from 'p-limit'
 import Snappy from '@/modules/webglue-api/Snappy'
 import { JSDOM } from 'jsdom'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 import { GlueBoardDoc } from '@@/migrate/schemas/glue-board'
 import { UserDoc } from '@@/migrate/schemas/user'
 
