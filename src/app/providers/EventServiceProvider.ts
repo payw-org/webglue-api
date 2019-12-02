@@ -2,7 +2,7 @@ import FragmentWatcher from '@/modules/webglue-api/FragmentWatcher'
 import FragmentNotifier from '@/modules/webglue-api/FragmentNotifier'
 import { UserDoc } from '@@/migrate/schemas/user'
 
-export default class EventProvider {
+export default class EventServiceProvider {
   public static boot(): void {
     this.registerFragmentEvent()
   }
